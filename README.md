@@ -1,9 +1,37 @@
 # AgentWeave
 
-> A config-driven multi-agent orchestration system using LangGraph Supervisor, Any-Agent runtime, MCP tools, and A2A agent communication.
+> **Weave your agents together — no code required.**
+> Drop a YAML config, point at your LLMs and tools, and AgentWeave spins up a supervised multi-agent system with a production-ready REST API.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-6366f1.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](https://opensource.org/licenses/MIT)
+[![LangGraph](https://img.shields.io/badge/LangGraph-supervisor-f59e0b.svg)](https://github.com/langchain-ai/langgraph)
+[![MCP](https://img.shields.io/badge/tools-MCP-818cf8.svg)](https://modelcontextprotocol.io)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
+
+---
+
+## What you get
+
+| | |
+|---|---|
+| **Zero-code agent setup** | Define agents, tools, and routing in YAML — no Python required |
+| **Framework freedom** | Run LangChain, OpenAI, Google ADK, Smolagents, and more side-by-side |
+| **Standardized tools** | Any MCP server works out of the box — filesystem, web search, databases |
+| **Human-in-the-loop** | Supervisor can pause and ask the user for input mid-run |
+| **OpenAI-compatible API** | Drop-in replacement endpoint for any client that speaks OpenAI |
+| **External agents (A2A)** | Discover and route to other running agent services automatically |
+
+---
+
+## Quick install
+
+```bash
+pip install agentweave
+cp config.example.yaml config.yaml   # edit with your API keys
+agentweave serve --config config.yaml
+# → open http://localhost:7777
+```
 
 ---
 
@@ -22,9 +50,8 @@
 - [Development](#development)
 - [Testing](#testing)
 - [Deployment](#deployment)
-- [Documentation](#documentation)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
+- [Attribution](#attribution)
 
 ---
 

@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
 from agentweave.config.models import Config, ServingConfig
-from agentweave.api.routes import health, agents, chat, openai_compat, tasks, langgraph_studio, conversations
+from agentweave.api.routes import health, agents, chat, openai_compat, tasks, langgraph_studio, conversations, landing
 
 logger = structlog.get_logger()
 
@@ -97,6 +97,7 @@ def create_app(
         return get_app_context()
 
     # Include routers with dependency override
+    app.include_router(landing.router)
     app.include_router(health.router)
     app.include_router(agents.router)
     app.include_router(chat.router)
