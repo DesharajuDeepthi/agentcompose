@@ -1068,7 +1068,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ for the future of AI agent orchestration**
-
----
 
