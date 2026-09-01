@@ -1,0 +1,12 @@
+{
+  "$schema": "https://langchain-ai.github.io/langgraph/schemas/langgraph.config.schema.json",
+  "graphs": {
+    "agentweave": {
+      "path": "./agentweave/graph/factory.py:create_graph",
+      "description": "AgentWeave Multi-Agent Orchestration System - Config-driven multi-agent orchestration with LangGraph, MCP, and A2A"
+    }
+  },
+  "env": ".env",
+  "dependencies": ["./pyproject.toml"],
+  "python_version": "3.11"
+}
