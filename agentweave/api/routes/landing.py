@@ -24,16 +24,17 @@ _HTML = """<!DOCTYPE html>
     --green: #22c55e;
     --amber: #f59e0b;
   }
+  html, body { height: 100%; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 4rem 2rem;
+    text-align: center;
   }
   .logo {
     font-size: 2.5rem;

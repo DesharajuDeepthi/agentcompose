@@ -1,0 +1,31 @@
+# Minimal config for local Docker testing — uses a dummy API key
+# The server starts fine; chat calls will fail until you add a real key.
+
+llms:
+  default:
+    provider: anthropic
+    model: claude-haiku-4-5-20251001
+    temperature: 0.7
+    api_key_env: ANTHROPIC_API_KEY
+
+agents:
+  supervisor:
+    kind: supervisor
+    llm: default
+    system_prompt: |
+      You are the supervisor. Route tasks to available workers.
+
+  assistant:
+    kind: native_worker
+    llm: default
+    framework: langchain
+    system_prompt: |
+      You are a helpful assistant. Answer questions clearly and concisely.
+    description: General purpose assistant
+    timeout_seconds: 60
+
+serving:
+  api:
+    host: 0.0.0.0
+    port: 7777
+    cors_origins: ["*"]
