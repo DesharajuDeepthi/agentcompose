@@ -1,12 +1,13 @@
-# Minimal config for local Docker testing — uses a dummy API key
-# The server starts fine; chat calls will fail until you add a real key.
+# Minimal config for local Docker testing using Qwen via OpenRouter.
+# Set OPENROUTER_API_KEY env var — free tier available at openrouter.ai.
 
 llms:
   default:
-    provider: anthropic
-    model: claude-haiku-4-5-20251001
-    temperature: 0.7
-    api_key_env: ANTHROPIC_API_KEY
+    provider: openai              # OpenRouter is OpenAI-compatible
+    model: qwen/qwen3-8b
+    base_url: https://openrouter.ai/api/v1
+    temperature: 0.8
+    api_key_env: OPENROUTER_API_KEY
 
 agents:
   supervisor:

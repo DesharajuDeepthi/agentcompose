@@ -18,6 +18,14 @@ llms:
     temperature: 0.3
     api_key_env: ANTHROPIC_API_KEY
 
+  # Qwen via OpenRouter (free tier available — great for local testing)
+  qwen:
+    provider: openai              # OpenRouter is OpenAI-compatible
+    model: qwen/qwen3-8b
+    base_url: https://openrouter.ai/api/v1
+    temperature: 0.8
+    api_key_env: OPENROUTER_API_KEY
+
   # Uncomment to add OpenAI
   # gpt:
   #   provider: openai
