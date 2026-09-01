@@ -51,7 +51,6 @@ agentweave serve --config config.yaml
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
-- [Attribution](#attribution)
 
 ---
 
@@ -1073,6 +1072,3 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-## Attribution
-
-AgentWeave is based on [maos](https://github.com/maheshyaddanapudi/maos) by Mahesh Yaddanapudi, licensed under the MIT License.
