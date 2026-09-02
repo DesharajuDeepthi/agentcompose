@@ -42,7 +42,7 @@ def get_checkpointer():
     return None
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat")
 async def chat(
     request: ChatRequest,
     http_request: Request,
@@ -172,7 +172,7 @@ async def chat(
         )
 
 
-@router.post("/chat/resume", response_model=ChatResponse)
+@router.post("/chat/resume")
 async def resume_chat(
     request: ResumeRequest,
     context: Dict[str, Any] = Depends(get_app_context)
