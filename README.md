@@ -1,1071 +1,258 @@
+<div align="center">
+
 # AgentWeave
 
-> **Weave your agents together — no code required.**
-> Drop a YAML config, point at your LLMs and tools, and AgentWeave spins up a supervised multi-agent system with a production-ready REST API.
+**Config-driven multi-agent orchestration — define your entire agent system in YAML,  
+run any framework, connect any tool, ship a production API in minutes.**
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-6366f1.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](https://opensource.org/licenses/MIT)
-[![LangGraph](https://img.shields.io/badge/LangGraph-supervisor-f59e0b.svg)](https://github.com/langchain-ai/langgraph)
-[![MCP](https://img.shields.io/badge/tools-MCP-818cf8.svg)](https://modelcontextprotocol.io)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.11+-6366F1?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Supervisor-F59E0B?style=flat-square&logo=chainlink&logoColor=white)](https://github.com/langchain-ai/langgraph)
+[![MCP](https://img.shields.io/badge/Tools-MCP-818CF8?style=flat-square)](https://modelcontextprotocol.io)
+[![A2A](https://img.shields.io/badge/Protocol-A2A-10B981?style=flat-square)](https://google.github.io/A2A/)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![OpenAI Compatible](https://img.shields.io/badge/OpenAI-Compatible-412991?style=flat-square&logo=openai&logoColor=white)](https://platform.openai.com/docs/api-reference)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](LICENSE)
 
----
-
-## What you get
-
-| | |
-|---|---|
-| **Zero-code agent setup** | Define agents, tools, and routing in YAML — no Python required |
-| **Framework freedom** | Run LangChain, OpenAI, Google ADK, Smolagents, and more side-by-side |
-| **Standardized tools** | Any MCP server works out of the box — filesystem, web search, databases |
-| **Human-in-the-loop** | Supervisor can pause and ask the user for input mid-run |
-| **OpenAI-compatible API** | Drop-in replacement endpoint for any client that speaks OpenAI |
-| **External agents (A2A)** | Discover and route to other running agent services automatically |
+</div>
 
 ---
 
-## Quick install
+## The Problem
+
+Building a multi-agent system today means choosing one framework and being locked in — rewriting agent glue code for every new model provider, hand-rolling tool integrations, and rebuilding the API layer from scratch each time. Switching from LangChain to OpenAI Agents SDK means rewriting the stack.
+
+## The Solution
+
+AgentWeave treats the agent graph as **pure configuration**. A single YAML file defines LLMs, tools, agents, routing, and serving — no Python required. The runtime handles framework adaptation, MCP tool mounting, A2A agent discovery, streaming, and human-in-the-loop pausing behind the scenes.
+
+**Add a new agent:** edit the YAML, restart. **Switch LLM provider:** change one line. **Add an MCP tool server:** two lines. No code changes, ever.
+
+---
+
+## 30-Second Demo
+
+```yaml
+# config.yaml — a research + writing agent team
+llms:
+  fast:
+    provider: anthropic
+    model: claude-haiku-4-5-20251001
+    api_key_env: ANTHROPIC_API_KEY
+
+mcp_servers:
+  web:
+    transport: stdio
+    command: ["npx", "-y", "@modelcontextprotocol/server-brave-search"]
+
+agents:
+  supervisor:
+    kind: supervisor
+    llm: fast
+    system_prompt: "Route research tasks to researcher, writing tasks to writer."
+
+  researcher:
+    kind: native_worker
+    llm: fast
+    framework: langchain        # swap to openai, google_adk, smolagents, agno…
+    skills: [search_web]
+    system_prompt: "Search the web and summarise your findings."
+
+  writer:
+    kind: native_worker
+    llm: fast
+    framework: langchain
+    system_prompt: "Write polished documents from research notes."
+
+serving:
+  api:
+    port: 7777
+```
 
 ```bash
 pip install agentweave
-cp config.example.yaml config.yaml   # edit with your API keys
 agentweave serve --config config.yaml
-# → open http://localhost:7777
+# → REST + SSE streaming API live at http://localhost:7777
+# → OpenAI-compatible endpoint at /v1/chat/completions
 ```
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [UI Integration](#ui-integration)
-- [Human-in-the-Loop](#human-in-the-loop)
-- [MCP Tool Integration](#mcp-tool-integration)
-- [A2A External Agents](#a2a-external-agents)
-- [Development](#development)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-
----
-
-## Overview
-
-AgentWeave is a **100% config-driven** orchestration system that enables flexible AI agent workflows without code changes. It combines:
-
-- **LangGraph Supervisor** - Intelligent routing between specialist agents
-- **Any-Agent** - Framework-agnostic agent runtime (LangChain, OpenAI, Google ADK, etc.)
-- **MCP (Model Context Protocol)** - Standardized tool integration
-- **A2A (Agent-to-Agent)** - External agent discovery and communication
-
-### Why AgentWeave?
-
-| Challenge | AgentWeave Solution |
-|-----------|---------------|
-| Framework lock-in | Any-Agent supports 7+ frameworks via config |
-| Tool integration complexity | MCP protocol standardizes all tools |
-| External agent silos | A2A protocol enables interoperability |
-| Rigid architectures | 100% YAML config, zero code changes |
-| Complex orchestration | LangGraph handles routing automatically |
 
 ---
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              AgentWeave Architecture                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│    ┌──────────┐         ┌─────────────────────────────────────────────┐     │
-│    │  Chat UI │◄───────►│              API Server (FastAPI)           │     │
-│    │(Any Client)        │  REST | SSE Streaming | OpenAI-Compatible   │     │
-│    └──────────┘         └───────────────────┬─────────────────────────┘     │
-│                                             │                                │
-│                         ┌───────────────────▼───────────────────┐           │
-│                         │        LangGraph Supervisor           │           │
-│                         │   • Routing decisions                 │           │
-│                         │   • send_message tool (HITL)          │           │
-│                         │   • Iteration control                 │           │
-│                         └───────────────────┬───────────────────┘           │
-│                                             │                                │
-│           ┌─────────────────────────────────┼─────────────────────────────┐ │
-│           │                                 │                             │ │
-│  ┌────────▼────────┐           ┌────────────▼────────┐      ┌────────────▼─┐│
-│  │  Native Worker  │           │   Native Worker     │      │External Agent││
-│  │  (Any-Agent)    │           │   (Any-Agent)       │      │   (A2A)      ││
-│  │                 │           │                     │      │              ││
-│  │  Framework:     │           │  Framework:         │      │ Discovered   ││
-│  │  • LangChain    │           │  • OpenAI           │      │ via Agent    ││
-│  │  • TinyAgent    │           │  • Google ADK       │      │ Cards        ││
-│  │  • Smolagents   │           │  • Agno             │      │              ││
-│  └────────┬────────┘           └──────────┬──────────┘      └──────┬───────┘│
-│           │                               │                        │        │
-│  ┌────────▼────────┐           ┌──────────▼──────────┐      ┌──────▼───────┐│
-│  │   MCP Tools     │           │    MCP Tools        │      │   Remote     ││
-│  │   (stdio/HTTP)  │           │    (stdio/HTTP)     │      │   Service    ││
-│  └─────────────────┘           └─────────────────────┘      └──────────────┘│
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+```mermaid
+flowchart TD
+    Client(["Any Client\nREST · SSE · OpenAI SDK · Open WebUI"])
 
-### Component Flow
+    subgraph API["API Layer — FastAPI"]
+        Rest["POST /chat/completions\nOpenAI-compatible"]
+        Stream["SSE Streaming\ntoken-level real-time"]
+        LGS["LangGraph Studio API\n/threads · /runs · /stream"]
+    end
 
-```
-User Request
-     │
-     ▼
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│ API Server  │───►│ Supervisor  │───►│   Worker    │───►│  MCP Tool   │
-│             │    │  (routes)   │    │ (executes)  │    │  (action)   │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-     ▲                   │                   │                   │
-     │                   │                   │                   │
-     └───────────────────┴───────────────────┴───────────────────┘
-                              Response Flow
+    subgraph Graph["LangGraph Supervisor"]
+        Sup["Supervisor Agent\nRouting · Iteration control"]
+        HITL["Human-in-the-Loop\nsend_message → pause → resume"]
+        Sup --> HITL
+    end
+
+    subgraph Workers["Worker Agents — Any-Agent adapter"]
+        W1["LangChain"]
+        W2["OpenAI Agents SDK"]
+        W3["Google ADK"]
+        W4["Smolagents · Agno · LlamaIndex"]
+    end
+
+    subgraph Tools["Tool & Agent Layer"]
+        MCP["MCP Servers\nstdio · HTTP\nfilesystem · web · databases"]
+        A2A["A2A External Agents\nAgent Card discovery\ncross-service routing"]
+    end
+
+    Persist(["Persistence\nSQLite · PostgreSQL checkpointer\nConversation history API"])
+
+    Client --> Rest & Stream & LGS --> Sup
+    Sup --> W1 & W2 & W3 & W4
+    W1 & W2 & W3 & W4 --> MCP & A2A
+    Graph --> Persist
 ```
 
 ---
 
-## Features
+## How It Works
 
-### Core Features
+### 1. Config is the only interface
 
-- ✅ **Config-Driven Architecture** - Add agents, tools, LLMs via YAML
-- ✅ **Multi-Framework Support** - LangChain, OpenAI, Google ADK, TinyAgent, Smolagents, Agno, LlamaIndex
-- ✅ **MCP Tool Protocol** - Standardized tool integration (stdio & HTTP transports)
-- ✅ **A2A Agent Protocol** - Discover and use external agents
-- ✅ **Multiple LLM Providers** - OpenAI, Anthropic, Google, Ollama, Azure
-- ✅ **Streaming Responses** - Real-time SSE streaming to UI
-- ✅ **Human-in-the-Loop** - Supervisor can request user input mid-flow
-- ✅ **OpenAI-Compatible API** - Drop-in replacement for existing UIs
+Every piece of the system — LLMs, tool servers, agents, graph behaviour, API settings — lives in one YAML file. The runtime reads it at startup and wires everything together. Changing the config and restarting is the only operation needed to change the system.
 
-### Prototype Scope
+### 2. Framework-agnostic workers via Any-Agent
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| LangGraph Supervisor | ✅ Complete | Routing loop with iteration limits |
-| Native Workers | ✅ Complete | Any-Agent with configurable frameworks |
-| MCP Integration | ✅ Complete | stdio and HTTP transports |
-| A2A Discovery | ✅ Complete | Agent Cards, host index |
-| REST API | ✅ Complete | FastAPI with validation |
-| SSE Streaming | ✅ Complete | Token-level streaming |
-| Human-in-Loop | ✅ Complete | send_message tool with interrupt/resume |
-| OpenAI-Compatible API | ✅ Complete | Drop-in replacement with transparent HITL |
-| LangGraph Studio API | ✅ Complete | Full Studio compatibility |
-| Conversation Persistence | ✅ Complete | SQLite/PostgreSQL checkpointer |
-| Conversation History API | ✅ Complete | List, retrieve, delete conversations |
-| Multi-Interface Thread IDs | ✅ Complete | OpenWebUI, LangGraph, custom headers |
-| Authentication | 📋 Phase 2 | Extension points ready |
-| Multi-tenancy | 📋 Phase 2 | Extension points ready |
-| Horizontal Scale | 📋 Phase 3 | Architecture supports it |
+Each worker agent declares a `framework` field. The Any-Agent adapter normalises tool calls, streaming, and message formats across 7+ frameworks so the supervisor never knows which framework a worker runs on.
+
+| Framework | `framework:` value |
+|-----------|--------------------|
+| LangChain | `langchain` |
+| OpenAI Agents SDK | `openai` |
+| Google ADK | `google_adk` |
+| Smolagents | `smolagents` |
+| TinyAgent | `tiny_agent` |
+| Agno | `agno` |
+| LlamaIndex | `llama_index` |
+
+### 3. MCP for tools, A2A for agents
+
+Tools mount via the **Model Context Protocol** — any MCP server works with two config lines. External agents advertise via **Agent Cards** over the **A2A protocol** and are discovered automatically; the supervisor routes to them exactly like local workers.
+
+### 4. Human-in-the-loop via graph interrupts
+
+When the supervisor needs clarification it calls `send_message`, pausing the graph at the current step. The LangGraph checkpointer preserves all state. The API caller resumes the run with the user's answer — execution continues exactly where it left off.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| **Orchestration** | LangGraph Supervisor | Stateful routing loop, built-in HITL tooling |
+| **Agent runtime** | Any-Agent | 7+ frameworks behind one normalised interface |
+| **Tool standard** | MCP (stdio + HTTP) | Vendor-neutral, growing ecosystem |
+| **Agent interop** | A2A protocol | Cross-service agent discovery and routing |
+| **API** | FastAPI + SSE | Async, streaming, OpenAI-compatible |
+| **Persistence** | SQLite / PostgreSQL | LangGraph checkpointer for conversation state |
+| **Config** | YAML DSL | Zero-code agent system definition |
+| **LLM providers** | OpenAI · Anthropic · Google · Ollama · Azure | Swap via one config line |
+
+---
+
+## API at a Glance
+
+```bash
+curl -X POST http://localhost:7777/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Research the latest AI agent papers"}],
+    "stream": false
+  }'
+```
+
+```json
+{
+  "id": "run_abc123",
+  "choices": [{
+    "message": {
+      "role": "assistant",
+      "content": "Here are the key findings from recent AI agent research..."
+    }
+  }],
+  "model": "agentweave/supervisor",
+  "usage": { "total_tokens": 1842 }
+}
+```
+
+**OpenAI-compatible** — point Open WebUI, LangGraph Studio, or your own client at `http://localhost:7777` without any changes.
+
+---
+
+## Key Engineering Decisions
+
+- **YAML as the only interface** — all framework glue, tool wiring, and routing logic is generated from config at startup. Operators never touch Python; developers extend by adding config keys, not editing orchestration code.
+- **Any-Agent adapter pattern** — a thin normalisation layer translates each framework's tool-call and streaming format into a common interface. The supervisor is framework-blind; workers are hot-swappable without touching the graph.
+- **MCP over custom tool SDKs** — the Model Context Protocol gives a single integration point for any tool server. Adding a capability means spinning up an MCP server and writing two lines of config.
+- **A2A for horizontal agent composition** — external agents advertise themselves via Agent Cards. AgentWeave discovers them at startup and treats them as first-class workers, enabling multi-service agent pipelines with no shared code.
+- **LangGraph checkpointer for HITL** — conversation state is persisted at each graph step. Pausing for human input is a native graph interrupt; resumption reloads state from the checkpointer and continues exactly where it left off.
+- **OpenAI-compatible API surface** — exposing `/v1/chat/completions` means zero client changes when adopting AgentWeave. The supervisor's routing is completely transparent to the caller.
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+ (for MCP servers)
-- API keys for LLM providers (OpenAI, Anthropic, etc.)
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/agentweave.git
-cd agentweave
+# Install
+pip install agentweave
+pip install 'any-agent[langchain,openai]'   # add frameworks you need
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Configure
+cp config.example.yaml config.yaml
+# Edit config.yaml — set LLM provider and API key env vars
 
-# Install dependencies
-pip install -e ".[dev]"
+# Serve
+agentweave serve --config config.yaml
 
-# Install Any-Agent with desired frameworks
-pip install 'any-agent[langchain,openai]'
-```
-
-### Configuration
-
-```bash
-# Copy example config
-cp config/config.example.yaml config/config.yaml
-
-# Set environment variables
-cp .env.example .env
-# Edit .env with your API keys
-```
-
-### Run
-
-```bash
-# Start the server
-python -m agentweave.main --config config/config.yaml
-
-# Or with environment override
-AgentWeave_CONFIG=config/config.yaml python -m agentweave.main
-```
-
-### Test
-
-```bash
-# Health check
-curl http://localhost:7777/health
-
-# Send a chat message
-curl -X POST http://localhost:7777/chat \
-  -H "Content-Type: application/json" \
-  -d '{"messages": [{"role": "user", "content": "Hello!"}]}'
-
-# Stream a response
-curl -X POST "http://localhost:7777/chat?stream=true" \
-  -H "Content-Type: application/json" \
-  -d '{"messages": [{"role": "user", "content": "Tell me about AI agents"}]}'
+# Develop (hot reload)
+agentweave serve --config config.yaml --reload
 ```
 
 ---
 
-## Configuration
-
-AgentWeave is entirely configured via YAML. Here's a minimal example:
-
-```yaml
-# config.yaml
-
-# LLM Providers
-llms:
-  default:
-    provider: openai
-    model: gpt-4o
-    temperature: 0.7
-
-# MCP Tool Servers
-mcp_servers:
-  knowledge:
-    transport: stdio
-    command: ["python", "-m", "mcp_server_knowledge"]
-
-# Tools (from MCP servers)
-tools:
-  search:
-    server: knowledge
-    tool_name: "search.documents"
-
-# Skills (groups of tools)
-skills:
-  research:
-    tools: ["search"]
-    description: "Research capabilities"
-
-# Skillsets (groups of skills)
-skillsets:
-  researcher:
-    skills: ["research"]
-
-# Agents
-agents:
-  supervisor:
-    kind: supervisor
-    llm: default
-    system_prompt: |
-      You coordinate tasks between specialist agents.
-      Available workers: research_agent
-      Route appropriately based on the task.
-
-  research_agent:
-    kind: native_worker
-    framework: langchain
-    llm: default
-    skillset: researcher
-    system_prompt: "You are a research specialist."
-    description: "Expert at finding and synthesizing information"
-
-# Graph Configuration
-graph:
-  max_iterations: 10
-  timeouts:
-    worker_seconds: 60
-    tool_call_seconds: 30
-  # Conversation persistence (default: memory)
-  checkpointer:
-    type: sqlite  # memory | sqlite | postgres
-    sqlite_path: "conversations.db"
-    # For PostgreSQL:
-    # type: postgres
-    # postgres_uri_env: "DATABASE_URL"
-
-# API Server
-serving:
-  api:
-    host: "0.0.0.0"
-    port: 7777
-```
-
-See [docs/D26-config-reference-guide.md](docs/D26-config-reference-guide.md) for complete reference.
-
----
-
-## API Reference
-
-### Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/chat` | Send chat message |
-| `POST` | `/chat?stream=true` | Stream chat response |
-| `POST` | `/chat/resume` | Resume after human-in-loop |
-| `GET` | `/agents` | List available agents |
-| `GET` | `/health` | Health check |
-| `POST` | `/v1/chat/completions` | OpenAI-compatible endpoint |
-| `GET` | `/conversations` | List all conversations |
-| `GET` | `/conversations/{thread_id}` | Get conversation details |
-| `GET` | `/conversations/{thread_id}/messages` | Get conversation messages |
-| `DELETE` | `/conversations/{thread_id}` | Delete a conversation |
-| `GET` | `/conversations/{thread_id}/status` | Get interrupt status |
-| `GET` | `/assistants` | LangGraph Studio: List assistants |
-| `GET` | `/threads` | LangGraph Studio: List threads |
-| `POST` | `/threads` | LangGraph Studio: Create thread |
-| `GET` | `/threads/{thread_id}/state` | LangGraph Studio: Get thread state |
-| `POST` | `/threads/{thread_id}/runs` | LangGraph Studio: Run on thread |
-
-### Chat Request
-
-```json
-{
-  "messages": [
-    {"role": "user", "content": "Research AI trends"}
-  ],
-  "thread_id": "optional-thread-id",
-  "config": {
-    "max_iterations": 5
-  }
-}
-```
-
-### Chat Response
-
-```json
-{
-  "thread_id": "uuid",
-  "messages": [...],
-  "final_response": "Here's what I found...",
-  "routing_history": ["supervisor", "research_agent", "supervisor"],
-  "tool_calls": [...],
-  "usage": {"total_tokens": 1500}
-}
-```
-
-### SSE Stream Events
-
-```
-event: chunk
-data: {"content": "Here's", "agent": "research_agent"}
-
-event: tool_call
-data: {"tool": "search", "arguments": {"query": "AI trends"}}
-
-event: tool_result
-data: {"tool": "search", "result": "..."}
-
-event: routing
-data: {"from": "supervisor", "to": "research_agent", "reasoning": "..."}
-
-event: input_required
-data: {"prompt": "Please clarify...", "thread_id": "..."}
-
-event: done
-data: {"thread_id": "...", "total_tokens": 1500}
-```
-
-See [docs/D29-D33-api-interface-specifications.md](docs/D29-D33-api-interface-specifications.md) for complete API docs.
-
----
-
-## UI Integration
-
-AgentWeave is designed to work with any chat UI via multiple interfaces:
-
-### Option 1: OpenAI-Compatible (Easiest)
-
-Works with Open WebUI, ChatGPT-style interfaces, and any OpenAI client:
-
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="http://localhost:7777/v1",
-    api_key="not-needed"  # AgentWeave handles auth differently
-)
-
-response = client.chat.completions.create(
-    model="agentweave",  # Ignored, uses config
-    messages=[{"role": "user", "content": "Hello!"}],
-    stream=True
-)
-
-for chunk in response:
-    print(chunk.choices[0].delta.content, end="")
-```
-
-### Option 2: Direct REST + SSE
-
-For custom UIs with full control:
-
-```javascript
-// React example
-const [messages, setMessages] = useState([]);
-const [isWaitingForInput, setIsWaitingForInput] = useState(false);
-
-async function sendMessage(content) {
-  const response = await fetch('/chat?stream=true', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      messages: [...messages, {role: 'user', content}],
-      thread_id: threadId
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const {done, value} = await reader.read();
-    if (done) break;
-
-    const lines = decoder.decode(value).split('\n');
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const event = JSON.parse(line.slice(6));
-        
-        if (event.type === 'chunk') {
-          // Append to current message
-          appendToMessage(event.content);
-        } else if (event.type === 'input_required') {
-          // Show input prompt to user
-          setIsWaitingForInput(true);
-          setInputPrompt(event.prompt);
-        }
-      }
-    }
-  }
-}
-
-// Resume after user provides input
-async function resumeWithInput(userInput) {
-  await fetch('/chat/resume', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      thread_id: threadId,
-      input: userInput
-    })
-  });
-  setIsWaitingForInput(false);
-}
-```
-
-### Option 3: WebSocket (Optional)
-
-For bidirectional real-time communication:
-
-```javascript
-const ws = new WebSocket('ws://localhost:7777/ws/chat');
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  // Handle messages, interrupts, etc.
-};
-
-ws.send(JSON.stringify({
-  type: 'message',
-  content: 'Hello!'
-}));
-```
-
----
-
-## Human-in-the-Loop
-
-The supervisor has a special `send_message` tool for requesting user input:
-
-### How It Works
-
-1. Supervisor decides it needs clarification
-2. Calls `send_message` tool with a prompt
-3. Graph execution **pauses** (LangGraph interrupt)
-4. API sends `input_required` SSE event to UI
-5. UI displays prompt and collects user input
-6. User submits response via `POST /chat/resume`
-7. Graph execution **resumes** with user's input
-8. Supervisor continues with the new information
-
-### Sequence Diagram
-
-```
-User        UI          API         Supervisor      Worker
- │           │           │              │             │
- │──"Help"──►│           │              │             │
- │           │──POST────►│              │             │
- │           │           │──invoke─────►│             │
- │           │           │              │──need info──│
- │           │           │              │             │
- │           │           │◄─interrupt───│             │
- │           │◄─SSE: input_required─────│             │
- │◄─"Please clarify..."──│              │             │
- │           │           │              │             │
- │──"I meant X"─────────►│              │             │
- │           │──POST /resume───────────►│             │
- │           │           │──resume─────►│             │
- │           │           │              │──continue──►│
- │           │◄─SSE: chunk──────────────│◄────────────│
- │◄─"Got it, here's..."──│              │             │
-```
-
-### Configuration
-
-```yaml
-agents:
-  supervisor:
-    kind: supervisor
-    llm: default
-    tools:
-      - send_message  # Built-in HITL tool
-    system_prompt: |
-      You can use the send_message tool to ask the user for clarification.
-      Use it when the request is ambiguous or you need more information.
-```
-
-### Resume Endpoint
-
-```bash
-curl -X POST http://localhost:7777/chat/resume \
-  -H "Content-Type: application/json" \
-  -d '{
-    "thread_id": "abc-123",
-    "input": "I meant the quarterly report from Q3"
-  }'
-```
-
----
-
-## MCP Tool Integration
-
-AgentWeave uses MCP (Model Context Protocol) for standardized tool integration.
-
-### Supported Transports
-
-| Transport | Use Case | Config |
-|-----------|----------|--------|
-| `stdio` | Local process tools | `command: ["python", "-m", "server"]` |
-| `http` | Remote HTTP servers | `url: "http://localhost:8080/mcp"` |
-| `sse` | Server-sent events | `url: "http://localhost:8080/sse"` |
-
-### Creating an MCP Server
-
-```python
-# mcp_server_example/__main__.py
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("Example Tools")
-
-@mcp.tool()
-async def search_documents(query: str, limit: int = 10) -> str:
-    """Search internal documents."""
-    results = await do_search(query, limit)
-    return format_results(results)
-
-@mcp.tool()
-def calculate(expression: str) -> float:
-    """Evaluate a math expression."""
-    return eval(expression)  # Use safe eval in production!
-
-if __name__ == "__main__":
-    mcp.run(transport="stdio")
-```
-
-### Configuring Tools
-
-```yaml
-mcp_servers:
-  example:
-    transport: stdio
-    command: ["python", "-m", "mcp_server_example"]
-    timeout_seconds: 30
-
-tools:
-  search:
-    server: example
-    tool_name: "search_documents"
-  
-  calc:
-    server: example
-    tool_name: "calculate"
-
-skills:
-  research:
-    tools: ["search"]
-  math:
-    tools: ["calc"]
-
-skillsets:
-  analyst:
-    skills: ["research", "math"]
-```
-
----
-
-## A2A External Agents
-
-AgentWeave supports external agents via the A2A (Agent-to-Agent) protocol. External agents can be:
-- **Managed** - Started by AgentWeave and run locally (e.g., the built-in title_generator)
-- **Remote** - Already running elsewhere, discovered via A2A protocol
-
-### Built-in Title Generator
-
-AgentWeave includes a built-in `title_generator` agent that demonstrates managed external agents:
-
-```yaml
-agents:
-  # ... supervisor and workers ...
-
-  # Managed external agent - AgentWeave starts this automatically
-  title_generator:
-    kind: external
-    llm: default
-    system_prompt: |
-      You generate concise, descriptive titles for conversations.
-      Rules: Max 5-8 words, be specific, use title case, output only the title.
-    description: Generates conversation titles
-    server:
-      host: "127.0.0.1"
-      # port: null  # Dynamic port - AgentWeave assigns a free port
-      implementation: title_generator  # Built-in implementation
-```
-
-The title_generator runs as a full A2A server with:
-- Agent card at `/.well-known/agent.json`
-- JSON-RPC endpoint at `/`
-- Integration with the configured LLM
-
-### Remote External Agents
-
-For agents running elsewhere, use A2A discovery:
-
-```yaml
-a2a:
-  discovery:
-    seeds:
-      - "http://analytics-agent.internal:9001"
-      - "http://ml-agent.internal:9002"
-    host_index_path: "/a2a/index.json"
-    well_known_paths:
-      - "/.well-known/agent.json"
-    timeout_seconds: 10
-
-  import_policy:
-    enabled: true
-    mode: langgraph_nodes  # or "tools_only"
-    prefix: "ext::"
-    include_tags: ["approved", "production"]
-    exclude_names: ["experimental-agent"]
-    max_agents: 20
-```
-
-### Creating a Custom A2A Agent
-
-You can create your own A2A-compliant agent using the AgentWeave base class:
-
-```python
-# my_agent.py
-from agentweave.a2a.agents.base import ExternalAgentServer
-from typing import Any, Dict, Optional
-
-class MyCustomAgent(ExternalAgentServer):
-    """Custom A2A agent with specialized capabilities."""
-
-    def __init__(self, name: str = "my_agent", port: int = 9010):
-        skills = [
-            {
-                "id": "analyze_data",
-                "name": "Data Analysis",
-                "description": "Analyze datasets and return insights"
-            }
-        ]
-        super().__init__(
-            name=name,
-            description="Custom data analysis agent",
-            host="0.0.0.0",
-            port=port,
-            skills=skills
-        )
-        self._llm = None  # Set via set_llm() or inject in __init__
-
-    async def _process(self, task: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """Process incoming A2A requests."""
-        # Your agent logic here
-        # Can use self._llm for LLM calls if configured
-        return f"Analysis complete for: {task[:50]}..."
-
-# Run as standalone server
-if __name__ == "__main__":
-    import asyncio
-    agent = MyCustomAgent(port=9010)
-    asyncio.run(agent.start())
-```
-
-Or use a minimal Starlette implementation for maximum flexibility:
-
-```python
-# standalone_agent.py
-import asyncio
-from starlette.applications import Starlette
-from starlette.routing import Route
-from starlette.responses import JSONResponse
-
-AGENT_CARD = {
-    "protocolVersion": "1.0",
-    "name": "standalone-agent",
-    "description": "Standalone A2A agent",
-    "version": "1.0.0",
-    "supportedInterfaces": [
-        {"url": "http://localhost:9010/", "protocolBinding": "JSONRPC"}
-    ],
-    "capabilities": {"streaming": False},
-    "defaultInputModes": ["text/plain"],
-    "defaultOutputModes": ["text/plain"],
-    "skills": [
-        {"id": "process", "name": "Process Data", "tags": ["data"]}
-    ]
-}
-
-async def agent_card(request):
-    return JSONResponse(AGENT_CARD)
-
-async def handle_request(request):
-    body = await request.json()
-    method = body.get("method", "")
-    request_id = body.get("id", "0")
-
-    if method == "message/send":
-        # Extract message content
-        params = body.get("params", {})
-        message = params.get("message", {})
-        parts = message.get("parts", [])
-        text = "".join(p.get("text", "") for p in parts if p.get("type") == "text")
-
-        # Process and respond
-        result = f"Processed: {text}"
-
-        return JSONResponse({
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "task": {
-                    "id": f"task-{request_id}",
-                    "status": "COMPLETED",
-                    "result": {
-                        "role": "agent",
-                        "parts": [{"type": "text", "text": result}]
-                    }
-                }
-            }
-        })
-
-    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32601, "message": "Method not found"}})
-
-app = Starlette(routes=[
-    Route("/.well-known/agent.json", agent_card),
-    Route("/", handle_request, methods=["POST"]),
-])
-
-# Run: uvicorn standalone_agent:app --port 9010
-```
-
-### Using Remote Agents
-
-Once a remote agent is running, add it to AgentWeave discovery seeds:
-
-```yaml
-a2a:
-  discovery:
-    seeds:
-      - "http://localhost:9010"  # Your custom agent
-```
-
-AgentWeave will:
-1. Fetch the agent card from `/.well-known/agent.json`
-2. Register the agent in the roster
-3. Allow the supervisor to route tasks to it
-
-See [docs/D61-implementing-external-a2a-agent.md](docs/D60-D65-implementation-guides.md) for complete guide.
-
----
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 agentweave/
-├── agentweave/                    # Main package
-│   ├── __init__.py
-│   ├── main.py             # Entry point
-│   ├── config/             # Configuration loading
-│   │   ├── loader.py
-│   │   ├── models.py
-│   │   └── schema.json
-│   ├── llm/                # LLM provider adapters
-│   │   ├── factory.py
-│   │   ├── registry.py
-│   │   └── adapters/
-│   ├── mcp/                # MCP integration
-│   │   ├── registry.py
-│   │   └── transports/
-│   ├── tools/              # Tool management
-│   │   ├── registry.py
-│   │   └── models.py
-│   ├── skills/             # Skill/Skillset management
-│   │   └── registry.py
-│   ├── agents/             # Agent management
-│   │   ├── factory.py
-│   │   └── registry.py
-│   ├── a2a/                # A2A integration
-│   │   ├── discovery.py
-│   │   ├── client.py
-│   │   └── models.py
-│   ├── graph/              # LangGraph orchestration
-│   │   ├── factory.py
-│   │   ├── state.py
-│   │   └── nodes/
-│   │       ├── supervisor.py
-│   │       ├── worker.py
-│   │       └── external.py
-│   └── api/                # FastAPI server
-│       ├── server.py
-│       ├── routes/
-│       └── middleware/
-├── mcp-servers/            # Example MCP servers
-├── a2a-agents/             # Example A2A agents
-├── config/                 # Configuration files
-├── tests/                  # Test suite
-├── docs/                   # Documentation (68 documents)
-├── scripts/                # Utility scripts
-├── requirements.txt
-├── pyproject.toml
-├── README.md               # This file
-├── CLAUDE.md              # Instructions for Claude Code
-└── AGENT.md               # Instructions for AI coding agents
+├── agentweave/
+│   ├── api/          # FastAPI routes — chat, threads, runs, health
+│   ├── graph/        # LangGraph supervisor + node definitions
+│   ├── agents/       # Any-Agent worker adapter layer
+│   ├── mcp/          # MCP server lifecycle + tool registry
+│   ├── a2a/          # A2A agent discovery + routing
+│   ├── llm/          # Multi-provider LLM client
+│   ├── config/       # YAML config loader + Pydantic schemas
+│   ├── skills/       # Tool grouping (tools → skills → skillsets)
+│   └── tools/        # Tool binding and MCP bridge
+├── docs/             # Architecture docs — C4 diagrams, API specs, data models
+├── config.example.yaml
+└── pyproject.toml
 ```
-
-### Development Setup
-
-```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run linting
-ruff check agentweave/
-mypy agentweave/
-
-# Run tests
-pytest
-
-# Run with hot reload
-uvicorn agentweave.api.server:app --reload --port 7777
-```
-
-### Code Style
-
-- Python 3.11+ with type hints
-- Async/await for all I/O operations
-- Pydantic v2 for data models
-- Ruff for linting, Black for formatting
-- 85% minimum test coverage
-
----
-
-## Testing
-
-### Running Tests
-
-```bash
-# All tests
-pytest
-
-# Unit tests only
-pytest -m unit
-
-# Integration tests
-pytest -m integration
-
-# E2E tests
-pytest -m e2e
-
-# With coverage
-pytest --cov=agentweave --cov-report=html
-```
-
-### Test Structure
-
-```
-tests/
-├── conftest.py          # Shared fixtures
-├── unit/                # Unit tests
-│   ├── test_config.py
-│   ├── test_llm.py
-│   ├── test_mcp.py
-│   └── ...
-├── integration/         # Integration tests
-│   ├── test_graph.py
-│   ├── test_a2a.py
-│   └── ...
-├── e2e/                 # End-to-end tests
-│   ├── test_chat_flow.py
-│   └── ...
-└── mocks/               # Mock implementations
-    ├── llm.py
-    ├── mcp.py
-    └── a2a.py
-```
-
-See [docs/D66-D68-testing-documentation.md](docs/D66-D68-testing-documentation.md) for complete testing guide.
-
----
-
-## Deployment
-
-### Docker
-
-```bash
-# Build image
-docker build -t agentweave:latest .
-
-# Run container
-docker run -p 7777:7777 \
-  -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  -v $(pwd)/config:/app/config \
-  agentweave:latest
-```
-
-### Docker Compose
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f orchestrator
-
-# Stop
-docker-compose down
-```
-
-See [docs/D52-docker-compose-spec.md](docs/D51-D56-setup-and-operations.md) for complete Docker setup.
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OPENAI_API_KEY` | If using OpenAI | OpenAI API key |
-| `ANTHROPIC_API_KEY` | If using Anthropic | Anthropic API key |
-| `GOOGLE_API_KEY` | If using Google | Google AI API key |
-| `AgentWeave_CONFIG` | No | Config file path |
-| `AgentWeave_LOG_LEVEL` | No | Log level (DEBUG, INFO, etc.) |
-
-See [docs/D28-environment-variables-and-secrets.md](docs/D28-environment-variables-and-secrets.md) for complete list.
 
 ---
 
 ## Documentation
 
-Complete documentation is in the `docs/` directory:
-
-| Category | Documents |
-|----------|-----------|
-| **Executive** | D01: Executive Summary |
-| **Architecture** | D02-D09: Vision, Glossary, C4 Diagrams, Tech Stack |
-| **Configuration** | D25-D28: Schema, Reference, Examples, Environment |
-| **Design** | D07-D08: Data Flow, Integration Architecture |
-| **Specifications** | D10-D24: Module Specs, D29-D33: API Specs |
-| **Diagrams** | D34-D44: Sequences, D45-D50: Data Models |
-| **Operations** | D51-D56: Setup, Docker, Troubleshooting |
-| **Implementation** | D60-D65: Step-by-step Guides |
-| **Testing** | D66-D68: Strategy, Cases, Mocks |
-| **Future** | D57-D59: Security Hooks, Extensibility, Roadmap |
-
-**Total: 68 documents with 56+ Mermaid diagrams**
-
----
-
-## Roadmap
-
-### Phase 1: Prototype (Complete)
-- [x] Architecture design
-- [x] Documentation (68 docs)
-- [x] Core implementation (LangGraph supervisor, native workers, MCP tools)
-- [x] E2E testing (239 tests passing)
-- [x] OpenAI-compatible API
-- [x] LangGraph Studio API compatibility
-- [x] Persistent conversation state (SQLite/PostgreSQL)
-- [x] Conversation history API
-- [x] Human-in-the-loop with interrupt/resume
-- [x] A2A external agent support
-
-### Phase 2: Hardening (Current)
-- [ ] Authentication/Authorization
-- [ ] Multi-tenancy foundations
-- [ ] Performance optimization
-- [ ] Production logging and monitoring
-
-### Phase 3: Scale
-- [ ] Multi-tenancy
-- [ ] Horizontal scaling
-- [ ] Advanced observability
-- [ ] Admin dashboard
-
-### Phase 4: Enterprise
-- [ ] Full RBAC
-- [ ] Audit logging
-- [ ] SSO integration
-- [ ] Compliance features
-
----
-
-## Contributing
-
-1. Read the documentation in `docs/`
-2. Check `CLAUDE.md` or `AGENT.md` for AI-assisted development
-3. Follow the code style guidelines
-4. Write tests for new features
-5. Submit PR with clear description
-
----
-
-## License
-
-MIT License - See [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- [LangGraph](https://github.com/langchain-ai/langgraph) - Graph-based orchestration
-- [Any-Agent](https://github.com/mozilla-ai/any-agent) - Framework-agnostic agents
-- [MCP](https://modelcontextprotocol.io/) - Model Context Protocol
-- [A2A](https://github.com/google/a2a-spec) - Agent-to-Agent Protocol
-
----
-
-
+| Doc | Contents |
+|-----|----------|
+| [Executive Summary](docs/D01-executive-summary.md) | What AgentWeave is and what problem it solves |
+| [Architecture Vision](docs/D02-architecture-vision-and-goals.md) | Design goals and principles |
+| [System Context (C4 L1)](docs/D04-system-context-diagram-c4-l1.md) | High-level context diagram |
+| [Container Diagram (C4 L2)](docs/D05-container-diagram-c4-l2.md) | Service and container breakdown |
+| [Config Reference](docs/D26-config-reference-guide.md) | Every YAML key with defaults |
+| [Config Examples](docs/D27-config-examples-catalog.md) | Ready-to-use config templates |
+| [API Specifications](docs/D29-D33-api-interface-specifications.md) | All endpoints with request/response shapes |
+| [Sequence Diagrams](docs/D34-D44-sequence-and-state-diagrams.md) | Request flows and state transitions |
+| [Data Models](docs/D45-D50-data-models.md) | Pydantic schemas for all boundaries |
