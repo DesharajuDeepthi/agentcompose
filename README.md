@@ -2,8 +2,10 @@
 
 # AgentWeave
 
-**Config-driven multi-agent orchestration — define your entire agent system in YAML,  
-run any framework, connect any tool, ship a production API in minutes.**
+### Docker Compose for AI agents.
+
+**Define your entire multi-agent system in YAML — supervisor, workers, tools, LLMs, routing —  
+and get a production REST API with streaming, human-in-the-loop, and OpenAI compatibility out of the box.**
 
 [![Python](https://img.shields.io/badge/Python-3.11+-6366F1?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Supervisor-F59E0B?style=flat-square&logo=chainlink&logoColor=white)](https://github.com/langchain-ai/langgraph)
@@ -17,15 +19,21 @@ run any framework, connect any tool, ship a production API in minutes.**
 
 ---
 
-## The Problem
+## The Concept
 
-Building a multi-agent system today means choosing one framework and being locked in — rewriting agent glue code for every new model provider, hand-rolling tool integrations, and rebuilding the API layer from scratch each time. Switching from LangChain to OpenAI Agents SDK means rewriting the stack.
+Docker Compose let you define a multi-service application in YAML and bring it up with one command — no code, no glue, just configuration. AgentWeave does the same for AI agent systems.
 
-## The Solution
+| Docker Compose | AgentWeave |
+|---------------|------------|
+| Define services in YAML | Define agents in YAML |
+| Any container image | Any LLM framework (LangChain, OpenAI, Google ADK…) |
+| Service networking | A2A agent-to-agent routing |
+| Volume mounts | MCP tool servers |
+| `docker compose up` | `agentweave serve --config config.yaml` |
 
-AgentWeave treats the agent graph as **pure configuration**. A single YAML file defines LLMs, tools, agents, routing, and serving — no Python required. The runtime handles framework adaptation, MCP tool mounting, A2A agent discovery, streaming, and human-in-the-loop pausing behind the scenes.
+A single YAML file describes your LLMs, tool servers, agents, routing rules, and API settings. The runtime wires everything together — framework adapters, MCP tool mounting, A2A agent discovery, SSE streaming, HITL pausing — so you never touch the orchestration code.
 
-**Add a new agent:** edit the YAML, restart. **Switch LLM provider:** change one line. **Add an MCP tool server:** two lines. No code changes, ever.
+**Add an agent:** one YAML block. **Switch LLM:** one line. **Add a tool server:** two lines.
 
 ---
 
