@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 
-from agentweave.api.models import (
+from agentcompose.api.models import (
     Assistant,
     AssistantConfig,
     AssistantCreate,
@@ -16,7 +16,7 @@ from agentweave.api.models import (
     RunCreate,
     RunStatus,
 )
-from agentweave.api.routes import langgraph_studio
+from agentcompose.api.routes import langgraph_studio
 
 
 class TestAssistantModels:
@@ -25,7 +25,7 @@ class TestAssistantModels:
     def test_assistant_create_defaults(self):
         """Test AssistantCreate has correct defaults."""
         request = AssistantCreate()
-        assert request.graph_id == "agentweave"
+        assert request.graph_id == "agentcompose"
         assert request.name is None
         assert request.config is None
 
@@ -170,8 +170,8 @@ class TestAssistantStore:
 
         assert "default" in langgraph_studio._assistants
         assistant = langgraph_studio._assistants["default"]
-        assert assistant.name == "AgentWeave Default Assistant"
-        assert assistant.graph_id == "agentweave"
+        assert assistant.name == "AgentCompose Default Assistant"
+        assert assistant.graph_id == "agentcompose"
 
     def test_init_default_assistant_idempotent(self):
         """Test _init_default_assistant doesn't duplicate."""
@@ -259,7 +259,7 @@ class TestAssistantModel:
         now = langgraph_studio._now_iso()
         assistant = Assistant(
             assistant_id="test-id",
-            graph_id="agentweave",
+            graph_id="agentcompose",
             name="Test Assistant",
             description="A test assistant",
             config=AssistantConfig(configurable={"temperature": 0.7}),
@@ -269,7 +269,7 @@ class TestAssistantModel:
         )
 
         assert assistant.assistant_id == "test-id"
-        assert assistant.graph_id == "agentweave"
+        assert assistant.graph_id == "agentcompose"
         assert assistant.config.configurable["temperature"] == 0.7
         assert assistant.metadata["created_by"] == "test"
 

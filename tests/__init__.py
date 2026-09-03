@@ -1,1 +1,1 @@
-"""Test suite for AgentWeave."""
+"""Test suite for AgentCompose."""

@@ -31,7 +31,7 @@ While security is out of scope for the prototype, the architecture includes expl
 
 ### 1.1 API Layer Authentication
 
-**Location:** `agentweave/api/middleware/auth.py`
+**Location:** `agentcompose/api/middleware/auth.py`
 
 ```python
 class AuthMiddleware:
@@ -62,7 +62,7 @@ security:
 
 ### 1.2 A2A Client Authentication
 
-**Location:** `agentweave/a2a/client.py`
+**Location:** `agentcompose/a2a/client.py`
 
 ```python
 class A2AClient:
@@ -74,7 +74,7 @@ class A2AClient:
 
 ### 1.3 MCP Server Authentication
 
-**Location:** `agentweave/mcp/transports/http.py`
+**Location:** `agentcompose/mcp/transports/http.py`
 
 ```python
 class HTTPTransport:
@@ -90,7 +90,7 @@ class HTTPTransport:
 
 ### 2.1 Tool Access Control
 
-**Location:** `agentweave/tools/registry.py`
+**Location:** `agentcompose/tools/registry.py`
 
 ```python
 class ToolRegistry:
@@ -102,7 +102,7 @@ class ToolRegistry:
 
 ### 2.2 Agent Access Control
 
-**Location:** `agentweave/agents/registry.py`
+**Location:** `agentcompose/agents/registry.py`
 
 ```python
 class AgentRegistry:
@@ -118,7 +118,7 @@ class AgentRegistry:
 
 ### 3.1 Tenant Context
 
-**Location:** `agentweave/core/context.py`
+**Location:** `agentcompose/core/context.py`
 
 ```python
 @dataclass
@@ -143,7 +143,7 @@ class TenantContext:
 
 ## 4. Audit Logging Extension Points
 
-**Location:** `agentweave/core/audit.py`
+**Location:** `agentcompose/core/audit.py`
 
 ```python
 class AuditLogger:
@@ -178,7 +178,7 @@ This guide explains how to extend the system with new capabilities.
 ### Step 1: Create Adapter
 
 ```python
-# agentweave/llm/adapters/newprovider.py
+# agentcompose/llm/adapters/newprovider.py
 
 class NewProviderAdapter(LLMAdapter):
     def __init__(self, config: LLMConfig):
@@ -197,7 +197,7 @@ class NewProviderAdapter(LLMAdapter):
 ### Step 2: Register Adapter
 
 ```python
-# agentweave/llm/factory.py
+# agentcompose/llm/factory.py
 PROVIDER_ADAPTERS = {
     "openai": OpenAIAdapter,
     "newprovider": NewProviderAdapter,  # Add here
@@ -221,7 +221,7 @@ llms:
 ### Step 1: Implement Transport
 
 ```python
-# agentweave/mcp/transports/websocket.py
+# agentcompose/mcp/transports/websocket.py
 
 class WebSocketTransport(MCPTransport):
     async def connect(self) -> None:
@@ -235,7 +235,7 @@ class WebSocketTransport(MCPTransport):
 ### Step 2: Register Transport
 
 ```python
-# agentweave/mcp/registry.py
+# agentcompose/mcp/registry.py
 TRANSPORTS = {
     "stdio": StdioTransport,
     "http": HTTPTransport,
@@ -248,7 +248,7 @@ TRANSPORTS = {
 ## 3. Adding Custom Tools (Without MCP)
 
 ```python
-# agentweave/tools/custom/my_tool.py
+# agentcompose/tools/custom/my_tool.py
 
 class MyCustomTool(CustomTool):
     name = "my_custom_tool"
@@ -269,7 +269,7 @@ class MyCustomTool(CustomTool):
 ## 4. Adding Custom Graph Nodes
 
 ```python
-# agentweave/graph/nodes/custom_node.py
+# agentcompose/graph/nodes/custom_node.py
 
 class CustomProcessingNode(BaseNode):
     async def run(self, state: GraphState) -> GraphState:

@@ -4,7 +4,7 @@ import uuid
 import pytest
 from unittest.mock import MagicMock
 
-from agentweave.api.thread_id import (
+from agentcompose.api.thread_id import (
     ThreadIdConfig,
     ThreadIdResolver,
     DEFAULT_CONFIG,
@@ -176,12 +176,12 @@ class TestThreadIdResolver:
 
     def test_uuid_generation_with_prefix(self):
         """Test UUID generation with prefix."""
-        config = ThreadIdConfig(prefix="agentweave-")
+        config = ThreadIdConfig(prefix="agentcompose-")
         resolver = ThreadIdResolver(config)
 
         result = resolver.resolve(body={}, headers={})
 
-        assert result.startswith("agentweave-")
+        assert result.startswith("agentcompose-")
         # Remaining part should be valid UUID
         uuid.UUID(result[5:])
 

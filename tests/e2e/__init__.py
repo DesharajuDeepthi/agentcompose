@@ -1,1 +1,1 @@
-"""End-to-end tests for AgentWeave."""
+"""End-to-end tests for AgentCompose."""

@@ -101,13 +101,13 @@ agents:
 
 ```bash
 # Start the server
-python -m agentweave.main
+python -m agentcompose.main
 
 # Or with specific config
-python -m agentweave.main --config config.yaml
+python -m agentcompose.main --config config.yaml
 
 # Or with debug mode
-DEBUG=true python -m agentweave.main
+DEBUG=true python -m agentcompose.main
 ```
 
 ### Step 5: Verify Installation
@@ -132,13 +132,13 @@ curl -X POST http://localhost:7777/chat \
 pytest
 
 # Run with auto-reload (development)
-uvicorn agentweave.api:app --reload --port 7777
+uvicorn agentcompose.api:app --reload --port 7777
 
 # Run linting
 ruff check .
 
 # Run type checking
-mypy agentweave/
+mypy agentcompose/
 ```
 
 ---
@@ -260,7 +260,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY agentweave/ ./agentweave/
+COPY agentcompose/ ./agentcompose/
 COPY config/ ./config/
 
 # Create non-root user
@@ -271,7 +271,7 @@ USER appuser
 EXPOSE 7777
 
 # Run application
-CMD ["python", "-m", "agentweave.main"]
+CMD ["python", "-m", "agentcompose.main"]
 ```
 
 ### Running with Docker Compose
@@ -296,7 +296,7 @@ docker-compose up -d --build
 
 ```
 multi-agent-orchestrator/
-├── agentweave/                          # Main package
+├── agentcompose/                          # Main package
 │   ├── __init__.py
 │   ├── main.py                    # Entry point
 │   │
@@ -619,12 +619,12 @@ DEBUG=true \
 DEBUG_LANGGRAPH=true \
 DEBUG_MCP=true \
 DEBUG_A2A=true \
-python -m agentweave.main
+python -m agentcompose.main
 ```
 
 ### Getting Help
 
-1. Check logs: `tail -f logs/agentweave.log`
+1. Check logs: `tail -f logs/agentcompose.log`
 2. Enable debug mode for detailed traces
 3. Use `/health` endpoint to check component status
 4. Review configuration with schema validation

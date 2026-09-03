@@ -20,9 +20,9 @@ TEST_CONFIG = FIXTURES_DIR / "test_config.yaml"
 
 
 @pytest.fixture
-async def agentweave_system():
+async def agentcompose_system():
     """Initialize system with unified test config."""
-    from agentweave.main import initialize_system, shutdown_system
+    from agentcompose.main import initialize_system, shutdown_system
 
     graph, context = await initialize_system(str(TEST_CONFIG))
     yield graph, context
@@ -41,10 +41,10 @@ class TestSupervisorWorkerOrchestration:
     """Tests for supervisor routing to native workers."""
 
     @pytest.mark.asyncio
-    async def test_supervisor_routes_to_math_expert(self, agentweave_system):
+    async def test_supervisor_routes_to_math_expert(self, agentcompose_system):
         """Test that supervisor correctly routes math problems to math agent."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         print(f"\nAvailable agents: {roster}")
@@ -79,10 +79,10 @@ class TestSupervisorWorkerOrchestration:
         assert "128" in response_content, f"Expected '128' in response, got: {response_content}"
 
     @pytest.mark.asyncio
-    async def test_supervisor_routes_to_researcher(self, agentweave_system):
+    async def test_supervisor_routes_to_researcher(self, agentcompose_system):
         """Test that supervisor correctly routes research tasks."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 
@@ -113,10 +113,10 @@ class TestSupervisorWorkerOrchestration:
         assert "test file" in response_content.lower() or len(response_content) > 50
 
     @pytest.mark.asyncio
-    async def test_multi_step_orchestration(self, agentweave_system):
+    async def test_multi_step_orchestration(self, agentcompose_system):
         """Test supervisor handling a task that requires worker execution."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 
@@ -148,10 +148,10 @@ class TestHumanInTheLoop:
     """Tests for human-in-the-loop via send_message."""
 
     @pytest.mark.asyncio
-    async def test_send_message_interrupts_for_input(self, agentweave_system):
+    async def test_send_message_interrupts_for_input(self, agentcompose_system):
         """Test that supervisor can use send_message to request user input."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
         from langgraph.types import Command
 
         roster = context["agent_registry"].get_roster()
@@ -201,10 +201,10 @@ class TestHumanInTheLoop:
                     print(f"Response: {str(msg.content)[:200]}...")
 
     @pytest.mark.asyncio
-    async def test_explicit_clarification_request(self, agentweave_system):
+    async def test_explicit_clarification_request(self, agentcompose_system):
         """Test supervisor asking for explicit clarification."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 
@@ -236,9 +236,9 @@ class TestAgentRoster:
     """Tests for agent roster and configuration."""
 
     @pytest.mark.asyncio
-    async def test_roster_contains_all_workers(self, agentweave_system):
+    async def test_roster_contains_all_workers(self, agentcompose_system):
         """Test that roster contains all configured workers."""
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         roster = context["agent_registry"].get_roster()
         print(f"\nRoster: {roster}")
@@ -254,9 +254,9 @@ class TestAgentRoster:
         assert len(roster) == 7, f"Expected 7 agents, got {len(roster)}: {roster}"
 
     @pytest.mark.asyncio
-    async def test_llm_registry_initialized(self, agentweave_system):
+    async def test_llm_registry_initialized(self, agentcompose_system):
         """Test that LLM registry is properly initialized."""
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         llm_registry = context["llm_registry"]
         adapters = llm_registry.list()

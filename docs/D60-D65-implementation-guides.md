@@ -140,10 +140,10 @@ if __name__ == "__main__":
 
 ```bash
 # Validate config
-python -m agentweave.config.validate config.yaml
+python -m agentcompose.config.validate config.yaml
 
 # Start with debug logging
-DEBUG=true python -m agentweave.main --config config.yaml
+DEBUG=true python -m agentcompose.main --config config.yaml
 ```
 
 ---
@@ -767,13 +767,13 @@ This guide shows how to add support for a new LLM provider.
 ## Step 1: Create Provider Adapter
 
 ```python
-# agentweave/llm/adapters/newprovider.py
+# agentcompose/llm/adapters/newprovider.py
 
 from typing import List, Optional, AsyncIterator
-from agentweave.llm.base import LLMAdapter, LLMResponse, LLMChunk
-from agentweave.config.models import LLMConfig
-from agentweave.tools.models import Tool
-from agentweave.graph.state import Message
+from agentcompose.llm.base import LLMAdapter, LLMResponse, LLMChunk
+from agentcompose.config.models import LLMConfig
+from agentcompose.tools.models import Tool
+from agentcompose.graph.state import Message
 import os
 
 class NewProviderAdapter(LLMAdapter):
@@ -878,9 +878,9 @@ class NewProviderAdapter(LLMAdapter):
 ## Step 2: Register Adapter
 
 ```python
-# agentweave/llm/factory.py
+# agentcompose/llm/factory.py
 
-from agentweave.llm.adapters.newprovider import NewProviderAdapter
+from agentcompose.llm.adapters.newprovider import NewProviderAdapter
 
 PROVIDER_ADAPTERS = {
     "openai": OpenAIAdapter,

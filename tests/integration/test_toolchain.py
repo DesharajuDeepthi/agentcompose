@@ -24,12 +24,12 @@ class TestMCPToolChain:
     @pytest.mark.asyncio
     async def test_full_toolchain_initialization(self):
         """Test the complete toolchain initialization."""
-        from agentweave.config.loader import ConfigLoader
-        from agentweave.llm.registry import LLMRegistry
-        from agentweave.llm.factory import LLMFactory
-        from agentweave.mcp.registry import MCPRegistry
-        from agentweave.tools.registry import ToolRegistry
-        from agentweave.skills.registry import SkillRegistry, SkillsetRegistry
+        from agentcompose.config.loader import ConfigLoader
+        from agentcompose.llm.registry import LLMRegistry
+        from agentcompose.llm.factory import LLMFactory
+        from agentcompose.mcp.registry import MCPRegistry
+        from agentcompose.tools.registry import ToolRegistry
+        from agentcompose.skills.registry import SkillRegistry, SkillsetRegistry
 
         # Load configuration
         loader = ConfigLoader()
@@ -119,9 +119,9 @@ class TestMCPToolChain:
     @pytest.mark.asyncio
     async def test_tool_invocation_via_mcp(self):
         """Test that tools can actually be invoked via MCP."""
-        from agentweave.config.loader import ConfigLoader
-        from agentweave.mcp.registry import MCPRegistry
-        from agentweave.tools.registry import ToolRegistry
+        from agentcompose.config.loader import ConfigLoader
+        from agentcompose.mcp.registry import MCPRegistry
+        from agentcompose.tools.registry import ToolRegistry
 
         # Load configuration
         loader = ConfigLoader()
@@ -170,14 +170,14 @@ class TestMCPToolChain:
     @pytest.mark.asyncio
     async def test_agent_tool_ids_from_skillset(self):
         """Test that agents get correct tool IDs from their skillsets."""
-        from agentweave.config.loader import ConfigLoader
-        from agentweave.llm.registry import LLMRegistry
-        from agentweave.llm.factory import LLMFactory
-        from agentweave.mcp.registry import MCPRegistry
-        from agentweave.tools.registry import ToolRegistry
-        from agentweave.skills.registry import SkillRegistry, SkillsetRegistry
-        from agentweave.agents.factory import AgentFactory
-        from agentweave.agents.registry import AgentRegistry
+        from agentcompose.config.loader import ConfigLoader
+        from agentcompose.llm.registry import LLMRegistry
+        from agentcompose.llm.factory import LLMFactory
+        from agentcompose.mcp.registry import MCPRegistry
+        from agentcompose.tools.registry import ToolRegistry
+        from agentcompose.skills.registry import SkillRegistry, SkillsetRegistry
+        from agentcompose.agents.factory import AgentFactory
+        from agentcompose.agents.registry import AgentRegistry
 
         # Load configuration
         loader = ConfigLoader()
@@ -256,9 +256,9 @@ class TestToolInvocationResults:
     @pytest.mark.asyncio
     async def test_calculator_expressions(self):
         """Test various calculator expressions."""
-        from agentweave.config.loader import ConfigLoader
-        from agentweave.mcp.registry import MCPRegistry
-        from agentweave.tools.registry import ToolRegistry
+        from agentcompose.config.loader import ConfigLoader
+        from agentcompose.mcp.registry import MCPRegistry
+        from agentcompose.tools.registry import ToolRegistry
 
         loader = ConfigLoader()
         config = loader.load(str(TEST_CONFIG))
@@ -295,9 +295,9 @@ class TestToolInvocationResults:
     @pytest.mark.asyncio
     async def test_file_reader_files(self):
         """Test file reader with different files."""
-        from agentweave.config.loader import ConfigLoader
-        from agentweave.mcp.registry import MCPRegistry
-        from agentweave.tools.registry import ToolRegistry
+        from agentcompose.config.loader import ConfigLoader
+        from agentcompose.mcp.registry import MCPRegistry
+        from agentcompose.tools.registry import ToolRegistry
 
         loader = ConfigLoader()
         config = loader.load(str(TEST_CONFIG))

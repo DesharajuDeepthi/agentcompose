@@ -120,7 +120,7 @@ This document defines the testing strategy for the Multi-Agent Orchestration Sys
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-v --cov=agentweave --cov-report=html"
+addopts = "-v --cov=agentcompose --cov-report=html"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
@@ -145,7 +145,7 @@ pytest -m integration
 pytest -m e2e
 
 # With coverage
-pytest --cov=agentweave --cov-report=html
+pytest --cov=agentcompose --cov-report=html
 
 # Specific module
 pytest tests/unit/test_config.py
@@ -175,8 +175,8 @@ LOG_LEVEL=DEBUG
 # tests/conftest.py
 
 import pytest
-from agentweave.config.loader import ConfigLoader
-from agentweave.config.models import Config
+from agentcompose.config.loader import ConfigLoader
+from agentcompose.config.models import Config
 
 @pytest.fixture
 def sample_config() -> Config:
@@ -210,7 +210,7 @@ def mock_llm_response():
 async def test_client(sample_config):
     """Test client for API testing."""
     from httpx import AsyncClient
-    from agentweave.api.server import create_app
+    from agentcompose.api.server import create_app
     
     app = await create_app(sample_config)
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -261,7 +261,7 @@ jobs:
           pip install -r requirements-dev.txt
       
       - name: Run unit tests
-        run: pytest -m unit --cov=agentweave
+        run: pytest -m unit --cov=agentcompose
       
       - name: Run integration tests
         run: pytest -m integration
@@ -479,7 +479,7 @@ This document specifies how to mock external dependencies for testing.
 # tests/mocks/llm.py
 
 from typing import List, Optional, AsyncIterator
-from agentweave.llm.base import LLMAdapter, LLMResponse, LLMChunk
+from agentcompose.llm.base import LLMAdapter, LLMResponse, LLMChunk
 
 class MockLLMAdapter(LLMAdapter):
     """Mock LLM adapter for testing."""
@@ -808,7 +808,7 @@ async def test_full_chat_flow(mock_llm, mock_mcp, mock_external, test_client):
 # tests/factories.py
 
 import factory
-from agentweave.config.models import LLMConfig, AgentConfig, ToolConfig
+from agentcompose.config.models import LLMConfig, AgentConfig, ToolConfig
 
 class LLMConfigFactory(factory.Factory):
     class Meta:

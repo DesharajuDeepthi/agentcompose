@@ -173,7 +173,7 @@ agents:
   # === EXTERNAL AGENTS (A2A protocol) ===
   # External agents run as separate A2A-compliant servers.
   # They can be:
-  # - Local (managed by AgentWeave, started on app startup)
+  # - Local (managed by AgentCompose, started on app startup)
   # - Remote (already running elsewhere, just discovered via A2A)
   #
   # This demonstrates the config-driven approach where the same config
@@ -187,5 +187,5 @@ agents:
     description: Generates conversation titles
     server:
       host: "127.0.0.1"  # Same host for local testing
-      # port: null  # Dynamic port - AgentWeave assigns a free port at startup
+      # port: null  # Dynamic port - AgentCompose assigns a free port at startup
       implementation: title_generator  # Built-in implementation

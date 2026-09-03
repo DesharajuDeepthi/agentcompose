@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from agentweave.api.models import (
+from agentcompose.api.models import (
     AgentInfo,
     AgentListResponse,
     ChatRequest,
@@ -26,7 +26,7 @@ from agentweave.api.models import (
     StreamEventType,
     WorkerResultInfo,
 )
-from agentweave.api.streaming import format_sse_event, create_stream_event
+from agentcompose.api.streaming import format_sse_event, create_stream_event
 
 
 class TestMessage:
@@ -177,10 +177,10 @@ class TestOpenAIModels:
     def test_openai_chat_request(self):
         """Test OpenAI chat request."""
         request = OpenAIChatRequest(
-            model="agentweave",
+            model="agentcompose",
             messages=[OpenAIMessage(role="user", content="Hello")]
         )
-        assert request.model == "agentweave"
+        assert request.model == "agentcompose"
         assert not request.stream
 
     def test_openai_chat_response(self):
@@ -233,7 +233,7 @@ class TestWorkerResultInfo:
 
     def test_result_with_tool_calls(self):
         """Test worker result with tool calls."""
-        from agentweave.api.models import ToolCallInfo
+        from agentcompose.api.models import ToolCallInfo
 
         result = WorkerResultInfo(
             from_agent="worker1",

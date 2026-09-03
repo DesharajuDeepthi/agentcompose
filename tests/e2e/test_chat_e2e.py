@@ -10,7 +10,7 @@ class TestAPIModelsE2E:
 
     def test_chat_request_creation(self):
         """Test ChatRequest model creation."""
-        from agentweave.api.models import ChatRequest, Message, MessageRole
+        from agentcompose.api.models import ChatRequest, Message, MessageRole
 
         request = ChatRequest(
             messages=[Message(role=MessageRole.USER, content="Hello")]
@@ -20,7 +20,7 @@ class TestAPIModelsE2E:
 
     def test_chat_response_creation(self):
         """Test ChatResponse model creation."""
-        from agentweave.api.models import ChatResponse, Message, MessageRole
+        from agentcompose.api.models import ChatResponse, Message, MessageRole
 
         response = ChatResponse(
             thread_id="test-123",
@@ -33,14 +33,14 @@ class TestAPIModelsE2E:
 
     def test_health_response_creation(self):
         """Test HealthResponse model creation."""
-        from agentweave.api.models import HealthResponse, HealthStatus
+        from agentcompose.api.models import HealthResponse, HealthStatus
 
         response = HealthResponse(status=HealthStatus.HEALTHY)
         assert response.status == HealthStatus.HEALTHY
 
     def test_agent_info_creation(self):
         """Test AgentInfo model creation."""
-        from agentweave.api.models import AgentInfo
+        from agentcompose.api.models import AgentInfo
 
         agent = AgentInfo(
             name="test_agent",
@@ -57,18 +57,18 @@ class TestOpenAICompatE2E:
 
     def test_openai_request_creation(self):
         """Test OpenAI-compatible request creation."""
-        from agentweave.api.models import OpenAIChatRequest, OpenAIMessage
+        from agentcompose.api.models import OpenAIChatRequest, OpenAIMessage
 
         request = OpenAIChatRequest(
-            model="agentweave",
+            model="agentcompose",
             messages=[OpenAIMessage(role="user", content="Hello")]
         )
-        assert request.model == "agentweave"
+        assert request.model == "agentcompose"
         assert not request.stream
 
     def test_openai_response_creation(self):
         """Test OpenAI-compatible response creation."""
-        from agentweave.api.models import (
+        from agentcompose.api.models import (
             OpenAIChatResponse,
             OpenAIChoice,
             OpenAIMessage,
@@ -94,7 +94,7 @@ class TestStreamingE2E:
 
     def test_format_sse_event(self):
         """Test SSE event formatting."""
-        from agentweave.api.streaming import format_sse_event
+        from agentcompose.api.streaming import format_sse_event
 
         event = format_sse_event("chunk", {"content": "Hello"})
         assert "event: chunk" in event
@@ -103,7 +103,7 @@ class TestStreamingE2E:
 
     def test_stream_event_types(self):
         """Test stream event types."""
-        from agentweave.api.models import StreamEventType
+        from agentcompose.api.models import StreamEventType
 
         assert StreamEventType.CHUNK.value == "chunk"
         assert StreamEventType.DONE.value == "done"
@@ -117,7 +117,7 @@ class TestGraphStateE2E:
 
     def test_create_initial_state(self):
         """Test creating initial graph state."""
-        from agentweave.graph.state import create_initial_state
+        from agentcompose.graph.state import create_initial_state
 
         state = create_initial_state(
             messages=[{"role": "user", "content": "Hello"}],
@@ -132,7 +132,7 @@ class TestGraphStateE2E:
 
     def test_worker_result_creation(self):
         """Test WorkerResult creation."""
-        from agentweave.graph.state import (
+        from agentcompose.graph.state import (
             WorkerResult,
             ResultOutput,
             ResultType,
@@ -154,7 +154,7 @@ class TestGraphStateE2E:
 
     def test_worker_result_to_message(self):
         """Test WorkerResult to message conversion."""
-        from agentweave.graph.state import (
+        from agentcompose.graph.state import (
             WorkerResult,
             ResultOutput,
             ResultType,

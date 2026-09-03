@@ -3,12 +3,12 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from agentweave.api.models import (
+from agentcompose.api.models import (
     OpenAIChatRequest,
     OpenAIChatResponse,
     OpenAIMessage,
 )
-from agentweave.api.routes.openai_compat import (
+from agentcompose.api.routes.openai_compat import (
     _extract_interrupt_message,
     _extract_final_content,
 )
@@ -168,7 +168,7 @@ class TestOpenAIChatResponseModel:
 
     def test_response_includes_thread_id(self):
         """Test response includes thread_id."""
-        from agentweave.api.models import OpenAIChoice, OpenAIUsage
+        from agentcompose.api.models import OpenAIChoice, OpenAIUsage
 
         response = OpenAIChatResponse(
             id="test-123",
@@ -188,7 +188,7 @@ class TestOpenAIChatResponseModel:
 
     def test_response_input_pending_flag(self):
         """Test response input_pending flag for interrupts."""
-        from agentweave.api.models import OpenAIChoice, OpenAIUsage
+        from agentcompose.api.models import OpenAIChoice, OpenAIUsage
 
         response = OpenAIChatResponse(
             id="test-123",
@@ -214,7 +214,7 @@ class TestStreamingHelpers:
 
     def test_extract_stream_content_from_ai_message(self):
         """Test extracts content from AI message in stream event."""
-        from agentweave.api.streaming import _extract_stream_content
+        from agentcompose.api.streaming import _extract_stream_content
 
         msg = MagicMock()
         msg.type = "ai"
@@ -234,7 +234,7 @@ class TestStreamingHelpers:
 
     def test_extract_stream_content_from_dict_message(self):
         """Test extracts content from dict message in stream event."""
-        from agentweave.api.streaming import _extract_stream_content
+        from agentcompose.api.streaming import _extract_stream_content
 
         event = {
             "event": "on_chain_stream",
@@ -250,7 +250,7 @@ class TestStreamingHelpers:
 
     def test_extract_stream_content_returns_none_for_other_events(self):
         """Test returns None for non-stream events."""
-        from agentweave.api.streaming import _extract_stream_content
+        from agentcompose.api.streaming import _extract_stream_content
 
         event = {
             "event": "on_tool_start",
@@ -262,7 +262,7 @@ class TestStreamingHelpers:
 
     def test_extract_interrupt_from_state(self):
         """Test extracts interrupt prompt from state."""
-        from agentweave.api.streaming import _extract_interrupt_from_state
+        from agentcompose.api.streaming import _extract_interrupt_from_state
 
         interrupt = MagicMock()
         interrupt.value = {
@@ -281,7 +281,7 @@ class TestStreamingHelpers:
 
     def test_extract_interrupt_from_state_returns_none(self):
         """Test returns None when no interrupt."""
-        from agentweave.api.streaming import _extract_interrupt_from_state
+        from agentcompose.api.streaming import _extract_interrupt_from_state
 
         state = MagicMock()
         state.tasks = []

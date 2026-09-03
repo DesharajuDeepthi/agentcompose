@@ -1,6 +1,6 @@
 # CLAUDE.md - Claude Code Implementation Guide
 
-> This file provides Claude Code with the context and instructions needed to implement the Multi-Agent Orchestration System (AgentWeave) from the design documents.
+> This file provides Claude Code with the context and instructions needed to implement the Multi-Agent Orchestration System (AgentCompose) from the design documents.
 
 ---
 
@@ -44,16 +44,16 @@ Follow this exact order to build the system incrementally:
    └── Set up logging (structlog)
 
 2. Configuration (D10, D25-D28)
-   ├── agentweave/config/models.py - Pydantic models for config
-   ├── agentweave/config/loader.py - YAML/JSON loading
-   ├── agentweave/config/schema.json - JSON Schema
-   └── agentweave/config/validator.py - Validation logic
+   ├── agentcompose/config/models.py - Pydantic models for config
+   ├── agentcompose/config/loader.py - YAML/JSON loading
+   ├── agentcompose/config/schema.json - JSON Schema
+   └── agentcompose/config/validator.py - Validation logic
 
 3. LLM Layer (D11)
-   ├── agentweave/llm/base.py - LLMAdapter protocol
-   ├── agentweave/llm/registry.py - LLMRegistry class
-   ├── agentweave/llm/factory.py - LLMFactory class
-   └── agentweave/llm/adapters/
+   ├── agentcompose/llm/base.py - LLMAdapter protocol
+   ├── agentcompose/llm/registry.py - LLMRegistry class
+   ├── agentcompose/llm/factory.py - LLMFactory class
+   └── agentcompose/llm/adapters/
        ├── openai.py
        ├── anthropic.py
        ├── google.py
@@ -64,67 +64,67 @@ Follow this exact order to build the system incrementally:
 
 ```
 4. MCP Integration (D12)
-   ├── agentweave/mcp/registry.py - MCPRegistry
-   ├── agentweave/mcp/connection.py - MCPConnection
-   └── agentweave/mcp/transports/
+   ├── agentcompose/mcp/registry.py - MCPRegistry
+   ├── agentcompose/mcp/connection.py - MCPConnection
+   └── agentcompose/mcp/transports/
        ├── base.py - MCPTransport protocol
        ├── stdio.py - StdioTransport
        └── http.py - HTTPTransport
 
 5. Tool Management (D13)
-   ├── agentweave/tools/models.py - Tool, ToolCall, ToolResult
-   └── agentweave/tools/registry.py - ToolRegistry
+   ├── agentcompose/tools/models.py - Tool, ToolCall, ToolResult
+   └── agentcompose/tools/registry.py - ToolRegistry
 
 6. Skills & Skillsets (D14-D15)
-   ├── agentweave/skills/models.py - Skill, Skillset
-   └── agentweave/skills/registry.py - SkillRegistry, SkillsetRegistry
+   ├── agentcompose/skills/models.py - Skill, Skillset
+   └── agentcompose/skills/registry.py - SkillRegistry, SkillsetRegistry
 ```
 
 ### Phase 3: Agents (Week 2)
 
 ```
 7. Agent Layer (D16)
-   ├── agentweave/agents/models.py - Agent types
-   ├── agentweave/agents/factory.py - AgentFactory (Any-Agent wrapper)
-   └── agentweave/agents/registry.py - AgentRegistry
+   ├── agentcompose/agents/models.py - Agent types
+   ├── agentcompose/agents/factory.py - AgentFactory (Any-Agent wrapper)
+   └── agentcompose/agents/registry.py - AgentRegistry
 
 8. A2A Integration (D17)
-   ├── agentweave/a2a/models.py - AgentCard, DiscoveredAgent
-   ├── agentweave/a2a/discovery.py - A2ADiscovery
-   └── agentweave/a2a/client.py - A2AClient
+   ├── agentcompose/a2a/models.py - AgentCard, DiscoveredAgent
+   ├── agentcompose/a2a/discovery.py - A2ADiscovery
+   └── agentcompose/a2a/client.py - A2AClient
 ```
 
 ### Phase 4: Graph (Week 2-3)
 
 ```
 9. Graph State (D45)
-   └── agentweave/graph/state.py - GraphState TypedDict
+   └── agentcompose/graph/state.py - GraphState TypedDict
 
 10. Graph Nodes (D19-D21)
-    └── agentweave/graph/nodes/
+    └── agentcompose/graph/nodes/
         ├── base.py - BaseNode
         ├── supervisor.py - SupervisorNode (with send_message tool)
         ├── worker.py - NativeWorkerNode
         └── external.py - ExternalAgentNode
 
 11. Graph Factory (D18)
-    └── agentweave/graph/factory.py - GraphFactory (builds LangGraph)
+    └── agentcompose/graph/factory.py - GraphFactory (builds LangGraph)
 ```
 
 ### Phase 5: API (Week 3)
 
 ```
 12. API Server (D24, D29-D33)
-    ├── agentweave/api/server.py - FastAPI app factory
-    ├── agentweave/api/models.py - Request/Response models
-    ├── agentweave/api/routes/
+    ├── agentcompose/api/server.py - FastAPI app factory
+    ├── agentcompose/api/models.py - Request/Response models
+    ├── agentcompose/api/routes/
     │   ├── chat.py - /chat, /chat/resume endpoints
     │   ├── agents.py - /agents endpoint
     │   └── health.py - /health endpoint
-    └── agentweave/api/streaming.py - SSE streaming helpers
+    └── agentcompose/api/streaming.py - SSE streaming helpers
 
 13. Entry Point
-    └── agentweave/main.py - CLI entry point
+    └── agentcompose/main.py - CLI entry point
 ```
 
 ### Phase 6: Testing (Week 3-4)
@@ -221,7 +221,7 @@ The `send_message` tool is CRITICAL for UI interaction:
 ### Supervisor Node with send_message
 
 ```python
-# agentweave/graph/nodes/supervisor.py
+# agentcompose/graph/nodes/supervisor.py
 
 from langgraph.types import interrupt
 
@@ -281,7 +281,7 @@ class SupervisorNode:
 ### API Resume Endpoint
 
 ```python
-# agentweave/api/routes/chat.py
+# agentcompose/api/routes/chat.py
 
 @router.post("/chat/resume")
 async def resume_chat(request: ResumeRequest, graph: CompiledGraph = Depends(get_graph)):
@@ -305,7 +305,7 @@ async def resume_chat(request: ResumeRequest, graph: CompiledGraph = Depends(get
 ### SSE Streaming with Interrupts
 
 ```python
-# agentweave/api/streaming.py
+# agentcompose/api/streaming.py
 
 async def stream_response(graph: CompiledGraph, request: ChatRequest):
     """Stream graph execution, handling interrupts."""
@@ -346,7 +346,7 @@ async def stream_response(graph: CompiledGraph, request: ChatRequest):
 ### Config Model Template
 
 ```python
-# agentweave/config/models.py
+# agentcompose/config/models.py
 
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Literal
@@ -451,12 +451,12 @@ class Config(BaseModel):
 ### Registry Template
 
 ```python
-# agentweave/llm/registry.py
+# agentcompose/llm/registry.py
 
 from typing import Dict, Optional
-from agentweave.config.models import LLMConfig
-from agentweave.llm.base import LLMAdapter
-from agentweave.llm.factory import LLMFactory
+from agentcompose.config.models import LLMConfig
+from agentcompose.llm.base import LLMAdapter
+from agentcompose.llm.factory import LLMFactory
 
 class LLMRegistry:
     """Registry for LLM adapters."""
@@ -496,7 +496,7 @@ class LLMRegistry:
 pytest
 
 # Run with coverage
-pytest --cov=agentweave --cov-report=html
+pytest --cov=agentcompose --cov-report=html
 
 # Run specific test file
 pytest tests/unit/test_config.py

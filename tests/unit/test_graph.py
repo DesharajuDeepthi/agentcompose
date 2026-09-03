@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from agentweave.graph.state import (
+from agentcompose.graph.state import (
     GraphState,
     ResultMetadata,
     ResultOutput,

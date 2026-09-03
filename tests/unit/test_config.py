@@ -3,7 +3,7 @@
 import pytest
 import yaml
 
-from agentweave.config.models import (
+from agentcompose.config.models import (
     AgentConfig,
     AgentKind,
     Config,
@@ -16,7 +16,7 @@ from agentweave.config.models import (
     SkillsetConfig,
     ToolConfig,
 )
-from agentweave.config.loader import ConfigLoader
+from agentcompose.config.loader import ConfigLoader
 
 
 class TestLLMConfig:

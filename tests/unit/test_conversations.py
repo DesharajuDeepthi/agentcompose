@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-from agentweave.api.routes.conversations import router, get_app_context
+from agentcompose.api.routes.conversations import router, get_app_context
 
 
 # =============================================================================
@@ -398,16 +398,16 @@ class TestCheckpointerConfig:
 
     def test_checkpointer_config_defaults(self):
         """Test default checkpointer configuration."""
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.config.models import CheckpointerConfig
 
         config = CheckpointerConfig()
         assert config.type == "memory"
-        assert config.sqlite_path == "agentweave_checkpoints.db"
+        assert config.sqlite_path == "agentcompose_checkpoints.db"
         assert config.postgres_uri is None
 
     def test_checkpointer_config_sqlite(self):
         """Test SQLite checkpointer configuration."""
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.config.models import CheckpointerConfig
 
         config = CheckpointerConfig(
             type="sqlite",
@@ -418,18 +418,18 @@ class TestCheckpointerConfig:
 
     def test_checkpointer_config_postgres(self):
         """Test PostgreSQL checkpointer configuration."""
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.config.models import CheckpointerConfig
 
         config = CheckpointerConfig(
             type="postgres",
-            postgres_uri="postgresql://localhost/agentweave"
+            postgres_uri="postgresql://localhost/agentcompose"
         )
         assert config.type == "postgres"
-        assert config.postgres_uri == "postgresql://localhost/agentweave"
+        assert config.postgres_uri == "postgresql://localhost/agentcompose"
 
     def test_checkpointer_config_in_graph_config(self):
         """Test checkpointer configuration in GraphConfig."""
-        from agentweave.config.models import GraphConfig, CheckpointerConfig
+        from agentcompose.config.models import GraphConfig, CheckpointerConfig
 
         graph_config = GraphConfig(
             checkpointer=CheckpointerConfig(type="sqlite")
@@ -446,8 +446,8 @@ class TestCheckpointerFactory:
 
     def test_create_memory_saver(self):
         """Test creating memory checkpointer."""
-        from agentweave.graph.checkpointer import CheckpointerFactory
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.graph.checkpointer import CheckpointerFactory
+        from agentcompose.config.models import CheckpointerConfig
         from langgraph.checkpoint.memory import MemorySaver
 
         config = CheckpointerConfig(type="memory")
@@ -457,8 +457,8 @@ class TestCheckpointerFactory:
 
     def test_create_unknown_type_raises(self):
         """Test that unknown type raises error."""
-        from agentweave.graph.checkpointer import CheckpointerFactory
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.graph.checkpointer import CheckpointerFactory
+        from agentcompose.config.models import CheckpointerConfig
 
         # Use MagicMock to bypass validation
         config = MagicMock()
@@ -478,8 +478,8 @@ class TestConversationStore:
     @pytest.fixture
     def memory_store(self):
         """Create a ConversationStore with memory checkpointer."""
-        from agentweave.graph.checkpointer import ConversationStore
-        from agentweave.config.models import CheckpointerConfig
+        from agentcompose.graph.checkpointer import ConversationStore
+        from agentcompose.config.models import CheckpointerConfig
         from langgraph.checkpoint.memory import MemorySaver
 
         config = CheckpointerConfig(type="memory")

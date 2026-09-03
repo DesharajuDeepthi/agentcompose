@@ -1,1 +1,1 @@
-"""Integration tests for AgentWeave."""
+"""Integration tests for AgentCompose."""

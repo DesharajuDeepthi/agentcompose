@@ -1,6 +1,6 @@
 # AGENT.md - AI Coding Agent Implementation Guide
 
-> Instructions for Cursor, GitHub Copilot, Cody, and other AI coding assistants to implement the Multi-Agent Orchestration System (AgentWeave).
+> Instructions for Cursor, GitHub Copilot, Cody, and other AI coding assistants to implement the Multi-Agent Orchestration System (AgentCompose).
 
 ---
 
@@ -21,8 +21,8 @@ This project implements a **config-driven multi-agent orchestration system**:
 ## Project Structure
 
 ```
-agentweave/
-├── agentweave/                    # Main Python package
+agentcompose/
+├── agentcompose/                    # Main Python package
 │   ├── config/             # Configuration loading & validation
 │   ├── llm/                # LLM provider adapters
 │   ├── mcp/                # MCP tool integration
@@ -73,9 +73,9 @@ pyyaml = "^6.0"
 ### Task 1: Configuration System
 
 **Files to create:**
-- `agentweave/config/models.py` - Pydantic config models
-- `agentweave/config/loader.py` - YAML/JSON loader
-- `agentweave/config/validator.py` - Validation logic
+- `agentcompose/config/models.py` - Pydantic config models
+- `agentcompose/config/loader.py` - YAML/JSON loader
+- `agentcompose/config/validator.py` - Validation logic
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D10 section)
 
@@ -92,10 +92,10 @@ class ConfigLoader:
 ### Task 2: LLM Registry
 
 **Files to create:**
-- `agentweave/llm/base.py` - LLMAdapter protocol
-- `agentweave/llm/factory.py` - Adapter factory
-- `agentweave/llm/registry.py` - Registry
-- `agentweave/llm/adapters/{openai,anthropic,google,ollama}.py`
+- `agentcompose/llm/base.py` - LLMAdapter protocol
+- `agentcompose/llm/factory.py` - Adapter factory
+- `agentcompose/llm/registry.py` - Registry
+- `agentcompose/llm/adapters/{openai,anthropic,google,ollama}.py`
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D11 section)
 
@@ -115,11 +115,11 @@ class LLMRegistry:
 ### Task 3: MCP Integration
 
 **Files to create:**
-- `agentweave/mcp/registry.py` - MCPRegistry
-- `agentweave/mcp/connection.py` - MCPConnection
-- `agentweave/mcp/transports/base.py` - Transport protocol
-- `agentweave/mcp/transports/stdio.py` - Stdio transport
-- `agentweave/mcp/transports/http.py` - HTTP transport
+- `agentcompose/mcp/registry.py` - MCPRegistry
+- `agentcompose/mcp/connection.py` - MCPConnection
+- `agentcompose/mcp/transports/base.py` - Transport protocol
+- `agentcompose/mcp/transports/stdio.py` - Stdio transport
+- `agentcompose/mcp/transports/http.py` - HTTP transport
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D12 section)
 
@@ -136,10 +136,10 @@ class MCPRegistry:
 ### Task 4: Tool/Skill System
 
 **Files to create:**
-- `agentweave/tools/models.py` - Tool, ToolCall, ToolResult
-- `agentweave/tools/registry.py` - ToolRegistry
-- `agentweave/skills/models.py` - Skill, Skillset
-- `agentweave/skills/registry.py` - SkillRegistry, SkillsetRegistry
+- `agentcompose/tools/models.py` - Tool, ToolCall, ToolResult
+- `agentcompose/tools/registry.py` - ToolRegistry
+- `agentcompose/skills/models.py` - Skill, Skillset
+- `agentcompose/skills/registry.py` - SkillRegistry, SkillsetRegistry
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D13-D15 sections)
 
@@ -148,9 +148,9 @@ class MCPRegistry:
 ### Task 5: Agent Layer
 
 **Files to create:**
-- `agentweave/agents/models.py` - Agent type definitions
-- `agentweave/agents/factory.py` - AgentFactory (wraps Any-Agent)
-- `agentweave/agents/registry.py` - AgentRegistry
+- `agentcompose/agents/models.py` - Agent type definitions
+- `agentcompose/agents/factory.py` - AgentFactory (wraps Any-Agent)
+- `agentcompose/agents/registry.py` - AgentRegistry
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D16 section)
 
@@ -172,9 +172,9 @@ result = await agent.run(task)
 ### Task 6: A2A Discovery
 
 **Files to create:**
-- `agentweave/a2a/models.py` - AgentCard, DiscoveredAgent
-- `agentweave/a2a/discovery.py` - A2ADiscovery
-- `agentweave/a2a/client.py` - A2AClient
+- `agentcompose/a2a/models.py` - AgentCard, DiscoveredAgent
+- `agentcompose/a2a/discovery.py` - A2ADiscovery
+- `agentcompose/a2a/client.py` - A2AClient
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D17 section)
 
@@ -183,12 +183,12 @@ result = await agent.run(task)
 ### Task 7: LangGraph Orchestration
 
 **Files to create:**
-- `agentweave/graph/state.py` - GraphState TypedDict
-- `agentweave/graph/factory.py` - GraphFactory
-- `agentweave/graph/nodes/base.py` - BaseNode
-- `agentweave/graph/nodes/supervisor.py` - SupervisorNode
-- `agentweave/graph/nodes/worker.py` - NativeWorkerNode
-- `agentweave/graph/nodes/external.py` - ExternalAgentNode
+- `agentcompose/graph/state.py` - GraphState TypedDict
+- `agentcompose/graph/factory.py` - GraphFactory
+- `agentcompose/graph/nodes/base.py` - BaseNode
+- `agentcompose/graph/nodes/supervisor.py` - SupervisorNode
+- `agentcompose/graph/nodes/worker.py` - NativeWorkerNode
+- `agentcompose/graph/nodes/external.py` - ExternalAgentNode
 
 **Reference:** `docs/D10-D24-module-specifications.md` (D18-D21 sections)
 
@@ -225,12 +225,12 @@ class SupervisorNode:
 ### Task 8: API Server
 
 **Files to create:**
-- `agentweave/api/server.py` - FastAPI app factory
-- `agentweave/api/models.py` - Request/Response Pydantic models
-- `agentweave/api/routes/chat.py` - `/chat`, `/chat/resume`
-- `agentweave/api/routes/agents.py` - `/agents`
-- `agentweave/api/routes/health.py` - `/health`
-- `agentweave/api/streaming.py` - SSE helpers
+- `agentcompose/api/server.py` - FastAPI app factory
+- `agentcompose/api/models.py` - Request/Response Pydantic models
+- `agentcompose/api/routes/chat.py` - `/chat`, `/chat/resume`
+- `agentcompose/api/routes/agents.py` - `/agents`
+- `agentcompose/api/routes/health.py` - `/health`
+- `agentcompose/api/streaming.py` - SSE helpers
 
 **Reference:** `docs/D29-D33-api-interface-specifications.md`
 
@@ -258,15 +258,15 @@ async def resume_chat(request: ResumeRequest):
 ### Task 9: Entry Point
 
 **Files to create:**
-- `agentweave/main.py` - CLI entry point
-- `agentweave/__init__.py` - Package init
+- `agentcompose/main.py` - CLI entry point
+- `agentcompose/__init__.py` - Package init
 
 ```python
-# agentweave/main.py
+# agentcompose/main.py
 import asyncio
 import argparse
-from agentweave.config.loader import ConfigLoader
-from agentweave.api.server import create_app
+from agentcompose.config.loader import ConfigLoader
+from agentcompose.api.server import create_app
 
 async def main():
     parser = argparse.ArgumentParser()
@@ -334,7 +334,7 @@ class MCPTransport(Protocol):
 ### 4. Error Handling
 
 ```python
-from agentweave.errors import ToolTimeoutError, LLMError
+from agentcompose.errors import ToolTimeoutError, LLMError
 
 async def invoke_tool(self, tool_id: str, arguments: dict) -> ToolResult:
     tool = self._tools.get(tool_id)
@@ -375,7 +375,7 @@ async def route(self, state: GraphState) -> str:
 
 ```python
 import pytest
-from agentweave.config.loader import ConfigLoader
+from agentcompose.config.loader import ConfigLoader
 
 def test_load_valid_config():
     loader = ConfigLoader()
@@ -389,7 +389,7 @@ def test_load_valid_config():
 
 ```python
 import pytest
-from agentweave.graph.factory import GraphFactory
+from agentcompose.graph.factory import GraphFactory
 
 @pytest.mark.integration
 async def test_graph_routes_to_worker(sample_config, mock_llm):
@@ -460,7 +460,7 @@ The system is complete when this works:
 
 ```bash
 # Start server
-python -m agentweave.main --config config/config.yaml
+python -m agentcompose.main --config config/config.yaml
 
 # Test chat
 curl -X POST http://localhost:7777/chat \

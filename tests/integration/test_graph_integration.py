@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from agentweave.config.models import (
+from agentcompose.config.models import (
     AgentConfig,
     AgentKind,
     Config,
@@ -11,8 +11,8 @@ from agentweave.config.models import (
     LLMConfig,
     LLMProvider,
 )
-from agentweave.llm.registry import LLMRegistry
-from agentweave.graph.state import create_initial_state
+from agentcompose.llm.registry import LLMRegistry
+from agentcompose.graph.state import create_initial_state
 
 from tests.mocks.llm import MockLLMAdapter, MockSupervisorLLM
 
@@ -91,7 +91,7 @@ class TestMockLLMIntegration:
     @pytest.mark.asyncio
     async def test_supervisor_routing_sequence(self):
         """Test supervisor LLM returns correct routing sequence."""
-        from agentweave.llm.base import Message
+        from agentcompose.llm.base import Message
 
         llm = MockSupervisorLLM(routing_sequence=["worker1", "worker2", "END"])
 
@@ -107,7 +107,7 @@ class TestMockLLMIntegration:
     @pytest.mark.asyncio
     async def test_mock_adapter_responses(self):
         """Test mock adapter returns configured responses."""
-        from agentweave.llm.base import Message
+        from agentcompose.llm.base import Message
 
         llm = MockLLMAdapter(responses=["First", "Second", "Third"])
 

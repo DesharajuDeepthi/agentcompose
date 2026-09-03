@@ -80,7 +80,7 @@ class ConfigLoader:
 # ConfigLoader behavior
 config:
   schema_validation: strict  # strict, warn, none
-  env_override_prefix: "AgentWeave_"  # Prefix for env var overrides
+  env_override_prefix: "AgentCompose_"  # Prefix for env var overrides
   include_support: true  # Support !include directive
 ```
 

@@ -1,4 +1,4 @@
-"""Pytest configuration and fixtures for AgentWeave tests."""
+"""Pytest configuration and fixtures for AgentCompose tests."""
 
 import asyncio
 import os
@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pytest_asyncio
 
-from agentweave.config.models import (
+from agentcompose.config.models import (
     AgentConfig,
     AgentKind,
     Config,
@@ -21,8 +21,8 @@ from agentweave.config.models import (
     SkillsetConfig,
     ToolConfig,
 )
-from agentweave.llm.base import LLMAdapter, LLMResponse, Message, ToolCallRequest
-from agentweave.graph.state import GraphState
+from agentcompose.llm.base import LLMAdapter, LLMResponse, Message, ToolCallRequest
+from agentcompose.graph.state import GraphState
 
 
 @pytest.fixture(scope="session")
@@ -277,7 +277,7 @@ async def mock_mcp_connection():
 @pytest_asyncio.fixture
 async def mock_a2a_client():
     """Create a mock A2A client."""
-    from agentweave.a2a.models import A2AResponse, TaskStatus
+    from agentcompose.a2a.models import A2AResponse, TaskStatus
 
     client = MagicMock()
 

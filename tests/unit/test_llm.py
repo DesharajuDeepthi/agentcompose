@@ -3,10 +3,10 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from agentweave.llm.base import LLMAdapter, LLMResponse, Message, ToolCallRequest, ToolDefinition
-from agentweave.llm.factory import LLMFactory
-from agentweave.llm.registry import LLMRegistry
-from agentweave.config.models import LLMConfig, LLMProvider
+from agentcompose.llm.base import LLMAdapter, LLMResponse, Message, ToolCallRequest, ToolDefinition
+from agentcompose.llm.factory import LLMFactory
+from agentcompose.llm.registry import LLMRegistry
+from agentcompose.config.models import LLMConfig, LLMProvider
 
 from tests.mocks.llm import MockLLMAdapter, MockSupervisorLLM
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# AgentWeave
+# AgentCompose
 
 ### Docker Compose for AI agents.
 
@@ -21,15 +21,15 @@ and get a production REST API with streaming, human-in-the-loop, and OpenAI comp
 
 ## The Concept
 
-Docker Compose let you define a multi-service application in YAML and bring it up with one command — no code, no glue, just configuration. AgentWeave does the same for AI agent systems.
+Docker Compose let you define a multi-service application in YAML and bring it up with one command — no code, no glue, just configuration. AgentCompose does the same for AI agent systems.
 
-| Docker Compose | AgentWeave |
+| Docker Compose | AgentCompose |
 |---------------|------------|
 | Define services in YAML | Define agents in YAML |
 | Any container image | Any LLM framework (LangChain, OpenAI, Google ADK…) |
 | Service networking | A2A agent-to-agent routing |
 | Volume mounts | MCP tool servers |
-| `docker compose up` | `agentweave serve --config config.yaml` |
+| `docker compose up` | `agentcompose serve --config config.yaml` |
 
 A single YAML file describes your LLMs, tool servers, agents, routing rules, and API settings. The runtime wires everything together — framework adapters, MCP tool mounting, A2A agent discovery, SSE streaming, HITL pausing — so you never touch the orchestration code.
 
@@ -77,8 +77,8 @@ serving:
 ```
 
 ```bash
-pip install agentweave
-agentweave serve --config config.yaml
+pip install agentcompose
+agentcompose serve --config config.yaml
 # → REST + SSE streaming API live at http://localhost:7777
 # → OpenAI-compatible endpoint at /v1/chat/completions
 ```
@@ -190,7 +190,7 @@ curl -X POST http://localhost:7777/chat/completions \
       "content": "Here are the key findings from recent AI agent research..."
     }
   }],
-  "model": "agentweave/supervisor",
+  "model": "agentcompose/supervisor",
   "usage": { "total_tokens": 1842 }
 }
 ```
@@ -204,9 +204,9 @@ curl -X POST http://localhost:7777/chat/completions \
 - **YAML as the only interface** — all framework glue, tool wiring, and routing logic is generated from config at startup. Operators never touch Python; developers extend by adding config keys, not editing orchestration code.
 - **Any-Agent adapter pattern** — a thin normalisation layer translates each framework's tool-call and streaming format into a common interface. The supervisor is framework-blind; workers are hot-swappable without touching the graph.
 - **MCP over custom tool SDKs** — the Model Context Protocol gives a single integration point for any tool server. Adding a capability means spinning up an MCP server and writing two lines of config.
-- **A2A for horizontal agent composition** — external agents advertise themselves via Agent Cards. AgentWeave discovers them at startup and treats them as first-class workers, enabling multi-service agent pipelines with no shared code.
+- **A2A for horizontal agent composition** — external agents advertise themselves via Agent Cards. AgentCompose discovers them at startup and treats them as first-class workers, enabling multi-service agent pipelines with no shared code.
 - **LangGraph checkpointer for HITL** — conversation state is persisted at each graph step. Pausing for human input is a native graph interrupt; resumption reloads state from the checkpointer and continues exactly where it left off.
-- **OpenAI-compatible API surface** — exposing `/v1/chat/completions` means zero client changes when adopting AgentWeave. The supervisor's routing is completely transparent to the caller.
+- **OpenAI-compatible API surface** — exposing `/v1/chat/completions` means zero client changes when adopting AgentCompose. The supervisor's routing is completely transparent to the caller.
 
 ---
 
@@ -214,7 +214,7 @@ curl -X POST http://localhost:7777/chat/completions \
 
 ```bash
 # Install
-pip install agentweave
+pip install agentcompose
 pip install 'any-agent[langchain,openai]'   # add frameworks you need
 
 # Configure
@@ -222,10 +222,10 @@ cp config.example.yaml config.yaml
 # Edit config.yaml — set LLM provider and API key env vars
 
 # Serve
-agentweave serve --config config.yaml
+agentcompose serve --config config.yaml
 
 # Develop (hot reload)
-agentweave serve --config config.yaml --reload
+agentcompose serve --config config.yaml --reload
 ```
 
 ---
@@ -233,8 +233,8 @@ agentweave serve --config config.yaml --reload
 ## Project Structure
 
 ```
-agentweave/
-├── agentweave/
+agentcompose/
+├── agentcompose/
 │   ├── api/          # FastAPI routes — chat, threads, runs, health
 │   ├── graph/        # LangGraph supervisor + node definitions
 │   ├── agents/       # Any-Agent worker adapter layer
@@ -255,7 +255,7 @@ agentweave/
 
 | Doc | Contents |
 |-----|----------|
-| [Executive Summary](docs/D01-executive-summary.md) | What AgentWeave is and what problem it solves |
+| [Executive Summary](docs/D01-executive-summary.md) | What AgentCompose is and what problem it solves |
 | [Architecture Vision](docs/D02-architecture-vision-and-goals.md) | Design goals and principles |
 | [System Context (C4 L1)](docs/D04-system-context-diagram-c4-l1.md) | High-level context diagram |
 | [Container Diagram (C4 L2)](docs/D05-container-diagram-c4-l2.md) | Service and container breakdown |

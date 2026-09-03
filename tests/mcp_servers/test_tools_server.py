@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple MCP server for testing AgentWeave tool integration.
+Simple MCP server for testing AgentCompose tool integration.
 
 Provides:
 - get_current_time: Get current date/time

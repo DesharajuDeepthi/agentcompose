@@ -2,7 +2,7 @@
 
 from typing import Any, AsyncIterator, Dict, List, Optional
 
-from agentweave.llm.base import (
+from agentcompose.llm.base import (
     LLMAdapter,
     LLMChunk,
     LLMResponse,

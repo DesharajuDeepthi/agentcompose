@@ -1,5 +1,5 @@
 """
-Full-stack E2E tests for AgentWeave (Multi-Agent Orchestration System).
+Full-stack E2E tests for AgentCompose (Multi-Agent Orchestration System).
 
 Tests verify the complete pipeline:
 1. MCP server connection
@@ -26,14 +26,14 @@ TEST_CONFIG = FIXTURES_DIR / "test_config.yaml"
 
 
 @pytest.fixture
-async def agentweave_system():
+async def agentcompose_system():
     """
-    Initialize AgentWeave system with unified test config.
+    Initialize AgentCompose system with unified test config.
 
     The config includes both general agents (analyst, researcher, assistant)
     and specialized agents (timekeeper, mathematician, librarian).
     """
-    from agentweave.main import initialize_system, shutdown_system
+    from agentcompose.main import initialize_system, shutdown_system
 
     graph, context = await initialize_system(str(TEST_CONFIG))
     yield graph, context
@@ -56,18 +56,18 @@ class TestMCPToolChain:
     """Tests for MCP → Tools → Skills → Skillsets chain."""
 
     @pytest.mark.asyncio
-    async def test_mcp_server_connected(self, agentweave_system):
+    async def test_mcp_server_connected(self, agentcompose_system):
         """Verify MCP server is connected."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         mcp_registry = context["mcp_registry"]
 
         connection = mcp_registry.get_connection("test_tools")
         assert connection is not None, "test_tools MCP server should be connected"
 
     @pytest.mark.asyncio
-    async def test_tools_materialized_from_mcp(self, agentweave_system):
+    async def test_tools_materialized_from_mcp(self, agentcompose_system):
         """Verify tools are materialized from MCP server."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         tool_registry = context["tool_registry"]
 
         expected_tools = ["current_time", "calculator", "file_reader", "echo_tool"]
@@ -76,9 +76,9 @@ class TestMCPToolChain:
             assert tool is not None, f"Tool '{tool_id}' should be materialized"
 
     @pytest.mark.asyncio
-    async def test_skills_contain_correct_tools(self, agentweave_system):
+    async def test_skills_contain_correct_tools(self, agentcompose_system):
         """Verify skills contain correct tools."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         skill_registry = context["skill_registry"]
 
         time_skill = skill_registry.get("time_operations")
@@ -90,9 +90,9 @@ class TestMCPToolChain:
         assert "calculator" in math_skill.tool_ids
 
     @pytest.mark.asyncio
-    async def test_skillsets_resolve_to_tools(self, agentweave_system):
+    async def test_skillsets_resolve_to_tools(self, agentcompose_system):
         """Verify skillsets correctly resolve to tools."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         skillset_registry = context["skillset_registry"]
 
         # Check time_and_math skillset
@@ -110,9 +110,9 @@ class TestAgentCapabilities:
     """Tests for agent tool assignments from skillsets."""
 
     @pytest.mark.asyncio
-    async def test_analyst_has_time_and_math_tools(self, agentweave_system):
+    async def test_analyst_has_time_and_math_tools(self, agentcompose_system):
         """Verify analyst agent has tools from time_and_math skillset."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         agent_registry = context["agent_registry"]
 
         workers = dict(agent_registry.get_workers())
@@ -124,9 +124,9 @@ class TestAgentCapabilities:
         assert "calculator" in analyst.tool_ids
 
     @pytest.mark.asyncio
-    async def test_specialized_agents_have_isolated_tools(self, agentweave_system):
+    async def test_specialized_agents_have_isolated_tools(self, agentcompose_system):
         """Verify specialized agents have isolated tool sets."""
-        _, context = agentweave_system
+        _, context = agentcompose_system
         agent_registry = context["agent_registry"]
 
         workers = dict(agent_registry.get_workers())
@@ -150,10 +150,10 @@ class TestSingleAgentToolUsage:
     """Tests for single agent using tools."""
 
     @pytest.mark.asyncio
-    async def test_math_calculation(self, agentweave_system):
+    async def test_math_calculation(self, agentcompose_system):
         """Test calculation via tool."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         messages = [{"role": "user", "content": "Calculate 25 * 4 + 17"}]
@@ -165,10 +165,10 @@ class TestSingleAgentToolUsage:
         assert "117" in response, f"Expected '117' in response"
 
     @pytest.mark.asyncio
-    async def test_file_reading(self, agentweave_system):
+    async def test_file_reading(self, agentcompose_system):
         """Test file reading via tool."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         messages = [{"role": "user", "content": "Read the file test.txt"}]
@@ -188,10 +188,10 @@ class TestMultiAgentRouting:
     """Tests for supervisor routing to multiple agents."""
 
     @pytest.mark.asyncio
-    async def test_automatic_routing_single_agent(self, agentweave_system):
+    async def test_automatic_routing_single_agent(self, agentcompose_system):
         """Test supervisor routes to appropriate single agent."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         messages = [{"role": "user", "content": "What is 7 multiplied by 8?"}]
@@ -203,10 +203,10 @@ class TestMultiAgentRouting:
         assert "56" in response
 
     @pytest.mark.asyncio
-    async def test_automatic_routing_multi_capability(self, agentweave_system):
+    async def test_automatic_routing_multi_capability(self, agentcompose_system):
         """Test supervisor handles task requiring multiple capabilities."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         messages = [{
@@ -235,10 +235,10 @@ class TestComplexMultiCapability:
     """
 
     @pytest.mark.asyncio
-    async def test_math_and_file_combined(self, agentweave_system):
+    async def test_math_and_file_combined(self, agentcompose_system):
         """Test task requiring both math and file reading capabilities."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 
@@ -256,15 +256,15 @@ class TestComplexMultiCapability:
         assert "test file" in response.lower(), "Expected file content"
 
     @pytest.mark.asyncio
-    async def test_time_math_file_combined(self, agentweave_system):
+    async def test_time_math_file_combined(self, agentcompose_system):
         """Test task requiring time, math, and file capabilities.
 
         Note: This tests multi-agent coordination. Due to LLM variability,
         we check that at least the core capabilities work and the system
         doesn't error out. The routing may vary between runs.
         """
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 
@@ -296,10 +296,10 @@ class TestContextPreservation:
     """Tests for conversation context across messages."""
 
     @pytest.mark.asyncio
-    async def test_follow_up_preserves_context(self, agentweave_system):
+    async def test_follow_up_preserves_context(self, agentcompose_system):
         """Test context is preserved across follow-up messages."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         thread_id = "test-context"
@@ -345,10 +345,10 @@ class TestErrorHandling:
     """Tests for graceful error handling."""
 
     @pytest.mark.asyncio
-    async def test_nonexistent_file_handled(self, agentweave_system):
+    async def test_nonexistent_file_handled(self, agentcompose_system):
         """Test graceful handling of non-existent file."""
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         messages = [{"role": "user", "content": "Read the file nonexistent.xyz"}]
@@ -370,9 +370,9 @@ class TestExternalA2AAgent:
     """Tests for external A2A agents (title_generator)."""
 
     @pytest.mark.asyncio
-    async def test_external_agent_started(self, agentweave_system):
+    async def test_external_agent_started(self, agentcompose_system):
         """Test that external agent server starts with the app."""
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         # Check external servers were started
         external_servers = context.get("external_servers", [])
@@ -390,24 +390,24 @@ class TestExternalA2AAgent:
         assert "127.0.0.1" in title_gen.endpoint, "Should be on localhost"
 
     @pytest.mark.asyncio
-    async def test_external_agent_in_roster(self, agentweave_system):
+    async def test_external_agent_in_roster(self, agentcompose_system):
         """Test that external agent appears in supervisor's roster."""
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         roster = context["agent_registry"].get_roster()
         assert "title_generator" in roster, f"title_generator should be in roster: {roster}"
 
     @pytest.mark.asyncio
-    async def test_external_agent_direct_call(self, agentweave_system):
+    async def test_external_agent_direct_call(self, agentcompose_system):
         """Test calling the external agent directly via its executor interface."""
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         external_servers = context.get("external_servers", [])
         title_gen = next((s for s in external_servers if s.name == "title_generator"), None)
         assert title_gen is not None, "title_generator should be running"
 
         # Call the agent directly using its executor interface
-        from agentweave.agents.executor import AgentInput
+        from agentcompose.agents.executor import AgentInput
         result = await title_gen.execute(AgentInput(
             task="How do I sort a list in Python using the built-in sort function?"
         ))
@@ -417,11 +417,11 @@ class TestExternalA2AAgent:
         assert len(result.content) < 100, "Title should be concise"
 
     @pytest.mark.asyncio
-    async def test_external_agent_a2a_endpoint(self, agentweave_system):
+    async def test_external_agent_a2a_endpoint(self, agentcompose_system):
         """Test the external agent's A2A endpoint directly."""
         import httpx
 
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         external_servers = context.get("external_servers", [])
         title_gen = next((s for s in external_servers if s.name == "title_generator"), None)
@@ -438,11 +438,11 @@ class TestExternalA2AAgent:
             assert "supportedInterfaces" in card
 
     @pytest.mark.asyncio
-    async def test_external_agent_via_a2a_protocol(self, agentweave_system):
+    async def test_external_agent_via_a2a_protocol(self, agentcompose_system):
         """Test sending a message to external agent via A2A protocol."""
         import httpx
 
-        graph, context = agentweave_system
+        graph, context = agentcompose_system
 
         external_servers = context.get("external_servers", [])
         title_gen = next((s for s in external_servers if s.name == "title_generator"), None)
@@ -482,7 +482,7 @@ class TestExternalA2AAgent:
             assert len(title) > 0, "Expected a generated title"
 
     @pytest.mark.asyncio
-    async def test_title_generation_via_supervisor(self, agentweave_system):
+    async def test_title_generation_via_supervisor(self, agentcompose_system):
         """Test title generation routed through supervisor to external agent.
 
         This demonstrates the full plug-and-play capability:
@@ -494,8 +494,8 @@ class TestExternalA2AAgent:
         NO prompt changes needed - langgraph-supervisor discovers title_generator
         automatically via the roster.
         """
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         print(f"\n--- Roster: {roster} ---")
@@ -557,10 +557,10 @@ class TestExternalA2AAgent:
             f"Expected title-like response, got: {title_response}"
 
     @pytest.mark.asyncio
-    async def test_title_generator_direct_executor(self, agentweave_system):
+    async def test_title_generator_direct_executor(self, agentcompose_system):
         """Test title_generator direct execution (fallback/testing mode)."""
-        graph, context = agentweave_system
-        from agentweave.agents.executor import AgentInput
+        graph, context = agentcompose_system
+        from agentcompose.agents.executor import AgentInput
 
         external_servers = context.get("external_servers", [])
         title_gen = next((s for s in external_servers if s.name == "title_generator"), None)
@@ -588,7 +588,7 @@ class TestTitleEndpointViaSupervisor:
     """
 
     @pytest.mark.asyncio
-    async def test_title_endpoint_routes_through_supervisor(self, agentweave_system):
+    async def test_title_endpoint_routes_through_supervisor(self, agentcompose_system):
         """Test that /api/tasks/title routes through supervisor to title_generator.
 
         This mirrors what the endpoint does internally:
@@ -596,8 +596,8 @@ class TestTitleEndpointViaSupervisor:
         2. Invoke graph (supervisor routes to title_generator)
         3. Extract title from response
         """
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
         assert "title_generator" in roster, "title_generator must be in roster"
@@ -649,7 +649,7 @@ class TestTitleEndpointViaSupervisor:
         assert has_relevant or len(title) < 100, f"Expected title-like response: {title}"
 
     @pytest.mark.asyncio
-    async def test_natural_language_and_endpoint_same_routing(self, agentweave_system):
+    async def test_natural_language_and_endpoint_same_routing(self, agentcompose_system):
         """Verify both natural language and endpoint use same supervisor routing.
 
         This is the key proof that:
@@ -658,8 +658,8 @@ class TestTitleEndpointViaSupervisor:
 
         Both go through: Supervisor → discovers title_generator → routes → result
         """
-        graph, context = agentweave_system
-        from agentweave.graph.state import create_initial_state
+        graph, context = agentcompose_system
+        from agentcompose.graph.state import create_initial_state
 
         roster = context["agent_registry"].get_roster()
 

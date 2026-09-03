@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agentweave"
+name = "agentcompose"
 version = "0.1.0"
-description = "AgentWeave - Config-driven multi-agent orchestration with LangGraph, Any-Agent, MCP, and A2A"
+description = "AgentCompose - Config-driven multi-agent orchestration with LangGraph, Any-Agent, MCP, and A2A"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -73,15 +73,15 @@ dev = [
 ]
 
 [project.scripts]
-agentweave = "agentweave.main:main"
+agentcompose = "agentcompose.main:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agentweave"]
+packages = ["agentcompose"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-v --cov=agentweave --cov-report=term-missing"
+addopts = "-v --cov=agentcompose --cov-report=term-missing"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
